@@ -157,7 +157,7 @@ export function formatAssistantMessage(content: string): React.ReactNode {
 
   return React.createElement(
     "div",
-    { className: "space-y-2.5 leading-relaxed" },
+    { className: "space-y-2.5 leading-relaxed break-words" },
     ...elements
   )
 }

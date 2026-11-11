@@ -33,19 +33,21 @@ export function AssistantHeader() {
           type="button"
           disabled
           aria-disabled="true"
-          className="rounded-full border border-black/15 bg-white px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium text-black/40 cursor-not-allowed opacity-70 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+          className="relative rounded-full border border-black/15 bg-white px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium text-black/40 cursor-not-allowed opacity-70 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
           aria-label={t("clearConversation")}
         >
-          {t("clearConversation")}
+          <span className="absolute -inset-1.5 sm:hidden" aria-hidden="true" />
+          <span>{t("clearConversation")}</span>
         </button>
         <button
           type="button"
           disabled
           aria-disabled="true"
-          className="rounded-full border border-black/15 bg-white px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium text-black/40 cursor-not-allowed opacity-70 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+          className="relative rounded-full border border-black/15 bg-white px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium text-black/40 cursor-not-allowed opacity-70 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
           aria-label={t("compare")}
         >
-          {t("compare")}
+          <span className="absolute -inset-1.5 sm:hidden" aria-hidden="true" />
+          <span>{t("compare")}</span>
         </button>
       </div>
     </header>

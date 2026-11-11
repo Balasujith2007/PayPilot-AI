@@ -95,7 +95,7 @@ export function ComparisonView() {
     <Sheet open={compareOpen} onOpenChange={setCompareOpen}>
       <SheetContent
         side="bottom"
-        className="h-[92dvh] max-h-[92dvh] rounded-t-[24px] p-4 sm:p-6 bg-white border-t border-black/10 flex flex-col"
+        className="h-[92dvh] max-h-[92dvh] rounded-t-[24px] p-4 sm:p-6 pb-[max(1rem,env(safe-area-inset-bottom))] bg-white border-t border-black/10 flex flex-col"
       >
         <SheetHeader className="border-b border-black/10 pb-3 text-left">
           <div className="flex items-center justify-between">
@@ -108,7 +108,7 @@ export function ComparisonView() {
             <button
               type="button"
               onClick={() => setCompareOpen(false)}
-              className="p-1.5 rounded-full hover:bg-[#F0EEED] text-black/60 hover:text-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-[#F0EEED] text-black/70 hover:text-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer"
               aria-label={t("close")}
             >
               <X className="h-5 w-5" />

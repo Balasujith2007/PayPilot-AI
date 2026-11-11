@@ -292,6 +292,9 @@
     "compareTrayAria": "Bandeja de comparación de productos",
     "compareTableCaption": "Tabla comparativa de productos seleccionados",
     "assistantTyping": "El asistente está escribiendo",
-    "tryAgain": "Reintentar"
+    "tryAgain": "Reintentar",
+    "close": "Cerrar",
+    "rowAction": "Acción",
+    "optionsCount": "{count} {count, plural, one {opción} other {opciones}}"
   }
 }

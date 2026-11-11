@@ -31,10 +31,10 @@ export const siteConfig = {
 
   // Social links (set to "" to hide)
   social: {
-    twitter: "https://x.com/epicdesignlabs",
-    instagram: "https://instagram.com/epicdesignlabs",
-    facebook: "https://facebook.com/epicdesignlabs",
-    youtube: "",
+    twitter: "https://x.com/",
+    instagram: "https://instagram.com/",
+    facebook: "https://facebook.com/",
+    youtube: "https: //youtube.com/",
     tiktok: "",
   },
 

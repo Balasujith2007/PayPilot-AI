@@ -292,6 +292,9 @@
     "compareTrayAria": "Product comparison tray",
     "compareTableCaption": "Comparison table of selected products",
     "assistantTyping": "Assistant is typing",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "close": "Close",
+    "rowAction": "Action",
+    "optionsCount": "{count} {count, plural, one {option} other {options}}"
   }
 }

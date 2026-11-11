@@ -76,7 +76,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const canSend = text.trim().length > 0 && !disabled
 
   return (
-    <div className="relative w-full p-2 sm:p-3.5 border-t border-black/10 bg-white shrink-0">
+    <div className="relative w-full p-2 sm:p-3.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] border-t border-black/10 bg-white shrink-0">
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -119,7 +119,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
               aria-label={t("sendAriaLabel")}
               className={`relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full bg-black text-white shadow-xs transition-all duration-150 ${
                 canSend
-                  ? "hover:bg-black/85 active:scale-95 cursor-pointer"
+                  ? "hover:bg-black/85 active:scale-95 motion-reduce:active:scale-100 cursor-pointer"
                   : "opacity-40 cursor-not-allowed"
               } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
             >

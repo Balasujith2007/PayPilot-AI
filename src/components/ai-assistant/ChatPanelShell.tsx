@@ -17,11 +17,8 @@ export function ChatPanelShell({ onPromptSelect }: ChatPanelShellProps) {
     <section
       role="region"
       aria-label={t("chatRegionAria")}
-      className="flex flex-col justify-between w-full h-[calc(100dvh-10.5rem)] sm:h-[clamp(560px,calc(100dvh-12rem),800px)] rounded-[20px] border border-black/10 bg-white shadow-xs overflow-hidden"
+      className="flex flex-col justify-between w-full h-[clamp(480px,76dvh,820px)] rounded-[20px] border border-black/10 bg-white shadow-xs overflow-hidden"
     >
-      {/* Top Bar */}
-      <AssistantHeader />
-
       {/* Welcome State (Center) */}
       <div className="flex-1 overflow-y-auto px-3.5 py-4 sm:px-8 sm:py-8 flex flex-col text-center">
         <div className="my-auto flex flex-col items-center justify-center py-2">
@@ -57,7 +54,7 @@ export function ChatPanelShell({ onPromptSelect }: ChatPanelShellProps) {
       </div>
 
       {/* Visually Complete Input Bar (Disabled) */}
-      <div className="p-2 sm:p-4 border-t border-black/10 bg-white">
+      <div className="p-2 sm:p-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] border-t border-black/10 bg-white">
         <form
           onSubmit={(e) => e.preventDefault()}
           className="relative flex flex-col items-center"
@@ -86,8 +83,9 @@ export function ChatPanelShell({ onPromptSelect }: ChatPanelShellProps) {
               disabled
               aria-disabled="true"
               aria-label={t("sendAriaLabel")}
-              className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-black text-white shadow-xs opacity-50 cursor-not-allowed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+              className="relative flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-black text-white shadow-xs opacity-50 cursor-not-allowed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
             >
+              <span className="absolute -inset-1.5 sm:hidden" aria-hidden="true" />
               <ArrowUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
           </div>
@@ -103,6 +101,11 @@ export function ChatPanelShell({ onPromptSelect }: ChatPanelShellProps) {
             </p>
           </div>
         </form>
+      </div>
+
+      {/* Top Bar (rendered via order-first for logical tab sequence) */}
+      <div className="order-first">
+        <AssistantHeader />
       </div>
     </section>
   )

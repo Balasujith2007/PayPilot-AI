@@ -69,7 +69,7 @@ export const ChatMessage = memo(function ChatMessage({
 
           {/* Metadata Row: Timestamp + Demo Response Badge */}
           <div
-            className={`mt-1 flex items-center gap-2 px-1 text-[11px] text-black/50 ${
+            className={`mt-1 flex items-center gap-2 px-1 text-[11px] text-black/60 ${
               isUser ? "justify-end" : "justify-start"
             }`}
           >

@@ -72,60 +72,8 @@ export function ChatInterface() {
       <section
         role="region"
         aria-label={t("chatRegionAria")}
-        className="flex flex-col w-full h-[calc(100dvh-10.5rem)] sm:h-[clamp(560px,calc(100dvh-12rem),800px)] rounded-[20px] border border-black/10 bg-white shadow-xs overflow-hidden"
+        className="flex flex-col w-full h-[clamp(480px,76dvh,820px)] rounded-[20px] border border-black/10 bg-white shadow-xs overflow-hidden"
       >
-        {/* Top Bar (Single Sleek Row on Mobile & Desktop) */}
-        <header className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-6 sm:py-3.5 border-b border-black/10 bg-white shrink-0">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div
-              className="flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full bg-black text-white shadow-xs"
-              aria-hidden="true"
-            >
-              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-sparkle-spin motion-reduce:animate-none" />
-            </div>
-            <div className="min-w-0 truncate">
-              <p className="font-bold text-xs sm:text-base text-black tracking-tight leading-tight truncate">
-                {t("headerTitle")}
-              </p>
-              <p className="text-[10px] sm:text-xs text-black/60 leading-tight truncate">
-                {t("headerSubtitle")}
-              </p>
-            </div>
-          </div>
-
-          {/* Action pills */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <button
-              type="button"
-              disabled={!hasMessages || isLoading}
-              onClick={clearConversation}
-              aria-disabled={!hasMessages || isLoading}
-              className={`rounded-full border px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${
-                hasMessages && !isLoading
-                  ? "border-black/20 text-black hover:bg-[#F0EEED] cursor-pointer"
-                  : "border-black/15 text-black/40 cursor-not-allowed opacity-60"
-              }`}
-              aria-label={t("clearConversation")}
-            >
-              {t("clearConversation")}
-            </button>
-            <button
-              type="button"
-              disabled={!canCompare}
-              onClick={() => setCompareOpen(true)}
-              aria-disabled={!canCompare}
-              className={`rounded-full border px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${
-                canCompare
-                  ? "border-black/20 text-black hover:bg-[#F0EEED] cursor-pointer"
-                  : "border-black/15 text-black/40 cursor-not-allowed opacity-60"
-              }`}
-              aria-label={t("compare")}
-            >
-              {t("compare")}
-            </button>
-          </div>
-        </header>
-
         {/* Main Area: Welcome State or Message List */}
         <div className="relative flex-1 min-h-0 overflow-hidden flex flex-col">
           {!hasMessages ? (
@@ -203,6 +151,63 @@ export function ChatInterface() {
 
         {/* Input Bar (Pinned at bottom, shrink-0) */}
         <ChatInput onSend={sendMessage} disabled={isLoading} />
+
+        {/* Top Bar (Single Sleek Row on Mobile & Desktop, order-first keeps it visually on top while providing logical tab order: chips -> input -> send -> clear -> compare) */}
+        <header className="order-first flex items-center justify-between gap-2 px-3 py-2.5 sm:px-6 sm:py-3.5 border-b border-black/10 bg-white shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div
+              className="flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full bg-black text-white shadow-xs"
+              aria-hidden="true"
+            >
+              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-sparkle-spin motion-reduce:animate-none" />
+            </div>
+            <div className="min-w-0 truncate">
+              <p className="font-bold text-xs sm:text-base text-black tracking-tight leading-tight truncate">
+                {t("headerTitle")}
+              </p>
+              <p className="text-[10px] sm:text-xs text-black/60 leading-tight truncate">
+                {t("headerSubtitle")}
+              </p>
+            </div>
+          </div>
+
+          {/* Action pills */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              type="button"
+              disabled={!hasMessages || isLoading}
+              onClick={clearConversation}
+              aria-disabled={!hasMessages || isLoading}
+              className={`relative rounded-full border px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${
+                hasMessages && !isLoading
+                  ? "border-black/20 text-black hover:bg-[#F0EEED] cursor-pointer"
+                  : "border-black/15 text-black/40 cursor-not-allowed opacity-60"
+              }`}
+              aria-label={t("clearConversation")}
+            >
+              <span className="absolute -inset-1.5 sm:hidden" aria-hidden="true" />
+              <span>{t("clearConversation")}</span>
+            </button>
+            <button
+              type="button"
+              disabled={!canCompare}
+              onClick={() => setCompareOpen(true)}
+              aria-disabled={!canCompare}
+              className={`relative rounded-full border px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${
+                canCompare
+                  ? "border-black/20 text-black hover:bg-[#F0EEED] cursor-pointer"
+                  : "border-black/15 text-black/40 cursor-not-allowed opacity-60"
+              }`}
+              aria-label={t("compare")}
+            >
+              <span className="absolute -inset-1.5 sm:hidden" aria-hidden="true" />
+              <span>
+                {t("compare")}
+                {compareIds.length > 0 ? ` (${compareIds.length})` : ""}
+              </span>
+            </button>
+          </div>
+        </header>
       </section>
 
       {/* Comparison Modal / Sheet */}

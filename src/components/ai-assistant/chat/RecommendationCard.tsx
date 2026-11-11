@@ -112,7 +112,7 @@ export const RecommendationCard = memo(function RecommendationCard({
 
           {/* Product Meta */}
           <div className="mt-2.5">
-            <h3 className="text-xs sm:text-sm font-bold text-black tracking-tight line-clamp-1 group-hover:underline">
+            <h3 className="text-xs sm:text-sm font-bold text-black tracking-tight line-clamp-2 break-words group-hover:underline">
               {product.name}
             </h3>
 
@@ -122,7 +122,7 @@ export const RecommendationCard = memo(function RecommendationCard({
                 <Star className="h-3 w-3 fill-[#FFC633] text-[#FFC633]" aria-hidden="true" />
                 <span>{product.rating.toFixed(1)}</span>
                 {product.reviewCount > 0 && (
-                  <span className="text-black/40 font-normal">({product.reviewCount})</span>
+                  <span className="text-black/60 font-normal">({product.reviewCount})</span>
                 )}
               </div>
             )}
@@ -136,7 +136,7 @@ export const RecommendationCard = memo(function RecommendationCard({
 
         {/* Reason Line (Plain Text) */}
         {reason && (
-          <p className="mt-2 text-[11px] sm:text-xs text-black/60 line-clamp-2 leading-relaxed">
+          <p className="mt-2 text-[11px] sm:text-xs text-black/60 line-clamp-2 leading-relaxed break-words">
             {reason}
           </p>
         )}
@@ -157,7 +157,7 @@ export const RecommendationCard = memo(function RecommendationCard({
           <button
             type="button"
             onClick={handleAddToCart}
-            className="w-full flex items-center justify-center gap-1.5 rounded-full bg-black text-white text-xs font-semibold py-2.5 hover:bg-black/85 active:scale-95 transition-all min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1"
+            className="w-full flex items-center justify-center gap-1.5 rounded-full bg-black text-white text-xs font-semibold py-2.5 hover:bg-black/85 active:scale-95 motion-reduce:active:scale-100 transition-all min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1 cursor-pointer"
             aria-label={`${t("addToCart")} ${product.name}`}
           >
             <ShoppingBag className="h-3.5 w-3.5" />
@@ -167,7 +167,7 @@ export const RecommendationCard = memo(function RecommendationCard({
           <Link
             href={`/${product.slug}`}
             onClick={(e) => e.stopPropagation()}
-            className="w-full flex items-center justify-center gap-1 rounded-full border border-black/20 bg-white text-black text-xs font-semibold py-2.5 hover:bg-[#F0EEED] active:scale-95 transition-all min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1 text-center"
+            className="w-full flex items-center justify-center gap-1 rounded-full border border-black/20 bg-white text-black text-xs font-semibold py-2.5 hover:bg-[#F0EEED] active:scale-95 motion-reduce:active:scale-100 transition-all min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1 text-center"
             aria-label={`${t("viewProduct")} ${product.name}`}
           >
             <span>{t("viewProduct")} &rarr;</span>

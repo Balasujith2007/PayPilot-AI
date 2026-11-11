@@ -38,9 +38,10 @@ export function SuggestedPrompts({
               type="button"
               onClick={() => onPromptSelect(promptText)}
               style={{ animationDelay: staggerDelay }}
-              className="group inline-flex items-center rounded-full bg-[#F0EEED] px-3 py-1.5 sm:px-3.5 sm:py-2 text-[11px] sm:text-xs md:text-sm font-medium text-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-black/10 hover:shadow-2xs active:scale-[0.98] motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100 motion-reduce:animate-none animate-fade-up focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1 text-center"
+              className="group relative inline-flex items-center rounded-full bg-[#F0EEED] px-3 py-1.5 sm:px-3.5 sm:py-2 text-[11px] sm:text-xs md:text-sm font-medium text-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-black/10 hover:shadow-2xs active:scale-[0.98] motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100 motion-reduce:animate-none animate-fade-up focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1 text-center"
               aria-label={promptText}
             >
+              <span className="absolute -inset-1.5 sm:hidden" aria-hidden="true" />
               <span>{promptText}</span>
             </button>
           )

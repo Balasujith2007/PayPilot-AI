@@ -12,11 +12,11 @@ export function ShoppingAssistant() {
   const t = useTranslations("assistant")
 
   return (
-    <div className="w-full bg-white overflow-x-hidden min-h-[calc(100dvh-4rem)]">
-      <div className="mx-auto max-w-[1440px] px-2.5 py-2.5 sm:px-6 sm:py-6 lg:px-8">
+    <div className="w-full bg-white overflow-x-hidden flex flex-col flex-1 min-h-0">
+      <div className="mx-auto w-full max-w-[1440px] px-2.5 py-2 sm:px-6 sm:py-6 lg:px-8 flex flex-col flex-1 min-h-0">
         {/* Breadcrumb: Home > AI Assistant */}
         <Reveal>
-          <nav aria-label="Breadcrumb" className="mb-2.5 sm:mb-6">
+          <nav aria-label="Breadcrumb" className="mb-2 sm:mb-6 shrink-0">
             <ol className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-black/60">
               <li>
                 <Link

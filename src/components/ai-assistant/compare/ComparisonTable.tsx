@@ -129,7 +129,7 @@ export function ComparisonTable({ products, reasons = {} }: ComparisonTableProps
 
                     <Link
                       href={`/${product.slug}`}
-                      className="font-bold text-sm sm:text-base text-black hover:underline line-clamp-2"
+                      className="font-bold text-sm sm:text-base text-black hover:underline line-clamp-2 break-words focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black rounded-xs"
                     >
                       {product.name}
                     </Link>
@@ -177,10 +177,10 @@ export function ComparisonTable({ products, reasons = {} }: ComparisonTableProps
                   <div className="flex items-center gap-1.5 font-semibold text-xs sm:text-sm">
                     <Star className="h-4 w-4 fill-[#FFC633] text-[#FFC633]" />
                     <span>{p.rating.toFixed(1)} / 5</span>
-                    <span className="text-black/40 font-normal">({p.reviewCount})</span>
+                    <span className="text-black/60 font-normal">({p.reviewCount})</span>
                   </div>
                 ) : (
-                  <span className="text-black/40 text-xs">—</span>
+                  <span className="text-black/60 text-xs">—</span>
                 )}
               </td>
             ))}
@@ -256,7 +256,7 @@ export function ComparisonTable({ products, reasons = {} }: ComparisonTableProps
             </th>
             {products.map((p) => (
               <td key={p.id} className="p-3 sm:p-4 text-black/80 font-medium">
-                {p.variants.length} {p.variants.length === 1 ? "Option" : "Options"}
+                {t("optionsCount", { count: p.variants.length })}
               </td>
             ))}
           </tr>
@@ -308,7 +308,7 @@ export function ComparisonTable({ products, reasons = {} }: ComparisonTableProps
               scope="row"
               className="sticky left-0 z-10 bg-white p-3 sm:p-4 text-xs font-semibold text-black/70 border-r border-black/5"
             >
-              Action
+              {t("rowAction")}
             </th>
             {products.map((product) => {
               const inStock = product.variants.some(
@@ -322,7 +322,7 @@ export function ComparisonTable({ products, reasons = {} }: ComparisonTableProps
                     <button
                       type="button"
                       disabled
-                      className="w-full rounded-full bg-black/10 text-black/40 text-xs font-semibold py-2.5 min-h-[44px] cursor-not-allowed"
+                      className="w-full rounded-full bg-black/10 text-black/40 text-xs font-semibold py-2.5 min-h-[44px] cursor-not-allowed select-none"
                     >
                       {t("outOfStock")}
                     </button>
@@ -330,7 +330,7 @@ export function ComparisonTable({ products, reasons = {} }: ComparisonTableProps
                     <button
                       type="button"
                       onClick={(e) => handleAddToCart(product, e)}
-                      className="w-full inline-flex items-center justify-center gap-1.5 rounded-full bg-black text-white text-xs font-semibold py-2.5 min-h-[44px] hover:bg-black/85 active:scale-95 transition-all shadow-xs"
+                      className="w-full inline-flex items-center justify-center gap-1.5 rounded-full bg-black text-white text-xs font-semibold py-2.5 min-h-[44px] hover:bg-black/85 active:scale-95 motion-reduce:active:scale-100 transition-all shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1 cursor-pointer"
                     >
                       <ShoppingBag className="h-3.5 w-3.5" />
                       <span>{t("addToCart")}</span>
@@ -338,7 +338,7 @@ export function ComparisonTable({ products, reasons = {} }: ComparisonTableProps
                   ) : (
                     <Link
                       href={`/${product.slug}`}
-                      className="w-full inline-flex items-center justify-center gap-1 rounded-full border border-black/20 bg-white text-black text-xs font-semibold py-2.5 min-h-[44px] hover:bg-[#F0EEED] active:scale-95 transition-all text-center"
+                      className="w-full inline-flex items-center justify-center gap-1 rounded-full border border-black/20 bg-white text-black text-xs font-semibold py-2.5 min-h-[44px] hover:bg-[#F0EEED] active:scale-95 motion-reduce:active:scale-100 transition-all text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1"
                     >
                       <span>{t("viewProduct")} &rarr;</span>
                     </Link>
