@@ -13,14 +13,20 @@ import {
 } from "./compare-products"
 import type { ComparableProduct, ProductComparison } from "./types"
 
-/** Splits `?ids=a,b` / repeated `?ids=a&ids=b` params into a clean, de-duplicated list. */
-export function parseProductIdsParam(value: string | string[] | null | undefined): string[] {
+/**
+ * Splits `?ids=a,b` / repeated `?ids=a&ids=b` params into a clean list.
+ * Duplicates are dropped unless `dedupe: false` (strict API validation).
+ */
+export function parseProductIdsParam(
+  value: string | string[] | null | undefined,
+  { dedupe = true }: { dedupe?: boolean } = {}
+): string[] {
   const raw = Array.isArray(value) ? value : value ? [value] : []
   const ids = raw
     .flatMap((v) => v.split(","))
     .map((v) => v.trim())
     .filter(Boolean)
-  return [...new Set(ids)]
+  return dedupe ? [...new Set(ids)] : ids
 }
 
 async function loadCategories(product: Product): Promise<Category[]> {

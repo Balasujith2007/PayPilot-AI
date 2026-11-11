@@ -150,19 +150,29 @@ function allSame(values: (string | null)[]): boolean {
   return values.every((v) => v === values[0])
 }
 
+/** Order-insensitive key for list values, so "Black, White" equals "White, Black". */
+function listKey(list: string[] | undefined): string | null {
+  return list && list.length > 0 ? [...list].sort().join("\u0000") : null
+}
+
+function joinList(list: string[] | undefined): string | null {
+  return list && list.length > 0 ? list.join(", ") : null
+}
+
 function row(
   key: string,
   label: string,
   group: ComparisonRow["group"],
   values: (string | null)[],
-  best: { indexes: number[]; label?: string } = { indexes: [] }
+  best: { indexes: number[]; label?: string } = { indexes: [] },
+  equalityKeys: (string | null)[] = values
 ): ComparisonRow {
   return {
     key,
     label,
     group,
     values,
-    differs: !allSame(values),
+    differs: !allSame(equalityKeys),
     bestIndexes: best.indexes,
     bestLabel: best.indexes.length > 0 ? best.label : undefined,
   }
@@ -206,7 +216,9 @@ function buildRows(products: ComparableProduct[]): ComparisonRow[] {
       "category",
       "Category",
       "overview",
-      products.map((p) => (p.categories.length > 0 ? p.categories.join(", ") : null))
+      products.map((p) => joinList(p.categories)),
+      undefined,
+      products.map((p) => listKey(p.categories))
     ),
     row(
       "rating",
@@ -262,7 +274,9 @@ function buildRows(products: ComparableProduct[]): ComparisonRow[] {
         `spec:${key}`,
         key,
         "specifications",
-        products.map((p) => p.specifications[key]?.join(", ") ?? null)
+        products.map((p) => joinList(p.specifications[key])),
+        undefined,
+        products.map((p) => listKey(p.specifications[key]))
       )
     )
   }
@@ -272,7 +286,9 @@ function buildRows(products: ComparableProduct[]): ComparisonRow[] {
       "features",
       "Listed features",
       "details",
-      products.map((p) => (p.features.length > 0 ? p.features.join(", ") : null))
+      products.map((p) => joinList(p.features)),
+      undefined,
+      products.map((p) => listKey(p.features))
     ),
     row(
       "description",

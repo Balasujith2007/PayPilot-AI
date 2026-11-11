@@ -50,7 +50,9 @@ async function handleCompare(input: unknown) {
 
 /** GET /api/products/compare?ids=prod-1,prod-2 */
 export async function GET(request: NextRequest) {
-  const productIds = parseProductIdsParam(request.nextUrl.searchParams.getAll("ids"))
+  const productIds = parseProductIdsParam(request.nextUrl.searchParams.getAll("ids"), {
+    dedupe: false,
+  })
   return handleCompare({ productIds })
 }
 

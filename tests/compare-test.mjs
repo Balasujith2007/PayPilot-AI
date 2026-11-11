@@ -107,6 +107,9 @@ await test("rejects more than 4 products", async () => {
 await test("rejects duplicate IDs and invalid JSON", async () => {
   const dup = await postCompare({ productIds: [a.id, a.id] })
   assert.equal(dup.status, 400)
+  const dupGet = await getCompare(`?ids=${a.id},${b.id},${a.id}`)
+  assert.equal(dupGet.status, 400)
+  assert.equal(dupGet.body.error.code, "INVALID_REQUEST")
   const bad = await postCompare("{not json")
   assert.equal(bad.status, 400)
   assert.equal(bad.body.error.code, "INVALID_JSON")
@@ -127,6 +130,27 @@ await test("missing specifications are null, never invented", async () => {
   assert(insight.disadvantages.some((d) => d.startsWith("Does not list:")))
   // Ratings come straight from the catalog
   assert.equal(body.data.products[0].rating?.value ?? null, a.rating > 0 ? a.rating : null)
+})
+
+await test("same option values in a different order are not a difference", async () => {
+  const optionSet = (p, name) =>
+    [...new Set(p.variants.flatMap((v) => v.options.filter((o) => o.name === name).map((o) => o.value)))]
+  const pair = (() => {
+    for (const x of withOptions)
+      for (const y of withOptions) {
+        if (x.id === y.id) continue
+        for (const name of new Set(x.variants.flatMap((v) => v.options.map((o) => o.name)))) {
+          const xs = optionSet(x, name), ys = optionSet(y, name)
+          if (xs.length > 1 && xs.join() !== ys.join() && [...xs].sort().join() === [...ys].sort().join())
+            return { x, y, name }
+        }
+      }
+  })()
+  if (!pair) return console.log("    (skipped: no reordered option fixture in catalog)")
+  const { status, body } = await getCompare(`?ids=${pair.x.id},${pair.y.id}`)
+  assert.equal(status, 200)
+  const r = body.data.rows.find((row) => row.key === `spec:${pair.name}`)
+  assert.equal(r.differs, false, `${pair.name} should not differ`)
 })
 
 console.log("\nUI")
