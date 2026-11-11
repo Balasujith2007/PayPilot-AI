@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { Star, Package, ShoppingBag } from "lucide-react"
 import { formatPrice } from "@/lib/utils"
 import { useCartStore } from "@/store/cart"
+import { CompareToggle } from "@/components/ai-assistant/compare/CompareToggle"
 import { toast } from "sonner"
 import type { CatalogProduct } from "@/types/ai-assistant"
 
@@ -79,6 +80,17 @@ export const RecommendationCard = memo(function RecommendationCard({
                 {t("demoPick")}
               </span>
             )}
+
+            {/* Compare Toggle Pill on Top Right */}
+            <div
+              className="absolute top-1.5 right-1.5 z-20"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+              }}
+            >
+              <CompareToggle productId={product.id} />
+            </div>
 
             {isMissingImage ? (
               <div className="flex h-full w-full items-center justify-center bg-[#F0EEED]">
@@ -165,4 +177,3 @@ export const RecommendationCard = memo(function RecommendationCard({
     </div>
   )
 })
-

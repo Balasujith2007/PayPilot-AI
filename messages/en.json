@@ -269,6 +269,27 @@
     "viewProduct": "View product",
     "outOfStock": "Out of stock",
     "demoPick": "Demo pick",
-    "addedToCart": "Added to cart"
+    "addedToCart": "Added to cart",
+    "compareNow": "Compare now",
+    "clearCompare": "Clear",
+    "selectedCount": "{count} of {total} selected",
+    "limitMessage": "You can compare up to 3 products.",
+    "selectAtLeastTwo": "Select at least 2 products",
+    "comparisonTitle": "PRODUCT COMPARISON",
+    "comparisonDescription": "Compare features, pricing, and ratings across selected products.",
+    "lowestPrice": "Lowest price",
+    "highestRated": "Highest rated",
+    "inStock": "In stock",
+    "rowProduct": "Product",
+    "rowPrice": "Price",
+    "rowRating": "Rating",
+    "rowBrand": "Brand",
+    "rowCategory": "Category",
+    "rowStock": "Availability",
+    "rowVariants": "Variants",
+    "rowTags": "Tags",
+    "rowReason": "Why it's recommended",
+    "compareTrayAria": "Product comparison tray",
+    "compareTableCaption": "Comparison table of selected products"
   }
 }

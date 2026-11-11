@@ -269,6 +269,27 @@
     "viewProduct": "Ver producto",
     "outOfStock": "Agotado",
     "demoPick": "Selección de demo",
-    "addedToCart": "Añadido al carrito"
+    "addedToCart": "Añadido al carrito",
+    "compareNow": "Comparar ahora",
+    "clearCompare": "Limpiar",
+    "selectedCount": "{count} de {total} seleccionados",
+    "limitMessage": "Puedes comparar hasta 3 productos.",
+    "selectAtLeastTwo": "Selecciona al menos 2 productos",
+    "comparisonTitle": "COMPARACIÓN DE PRODUCTOS",
+    "comparisonDescription": "Compara características, precios y valoraciones de los productos seleccionados.",
+    "lowestPrice": "Precio más bajo",
+    "highestRated": "Mejor valorado",
+    "inStock": "En stock",
+    "rowProduct": "Producto",
+    "rowPrice": "Precio",
+    "rowRating": "Valoración",
+    "rowBrand": "Marca",
+    "rowCategory": "Categoría",
+    "rowStock": "Disponibilidad",
+    "rowVariants": "Variantes",
+    "rowTags": "Etiquetas",
+    "rowReason": "Por qué se recomienda",
+    "compareTrayAria": "Bandeja de comparación de productos",
+    "compareTableCaption": "Tabla comparativa de productos seleccionados"
   }
 }

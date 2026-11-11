@@ -30,7 +30,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
     const el = textareaRef.current
     if (!el) return
     el.style.height = "auto"
-    const maxHeight = 120 // ~5 lines
+    const maxHeight = 100 // max lines before scrolling
     el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`
   }, [])
 
@@ -76,7 +76,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const canSend = text.trim().length > 0 && !disabled
 
   return (
-    <div className="relative w-full p-3 sm:p-4 border-t border-black/10 bg-white">
+    <div className="relative w-full p-2 sm:p-3.5 border-t border-black/10 bg-white shrink-0">
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -84,7 +84,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
         }}
         className="relative flex flex-col items-center w-full"
       >
-        <div className="relative flex w-full items-end rounded-[28px] bg-[#F0EEED] p-1.5 sm:p-2 border border-transparent focus-within:border-black/20 focus-within:bg-white focus-within:shadow-xs transition-all duration-200">
+        <div className="relative flex w-full items-end rounded-[24px] sm:rounded-[28px] bg-[#F0EEED] p-1 sm:p-1.5 border border-transparent focus-within:border-black/20 focus-within:bg-white focus-within:shadow-xs transition-all duration-200">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -95,13 +95,13 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
             placeholder={t("inputPlaceholder")}
             aria-label={t("inputAriaLabel")}
             maxLength={MAX_CHARS}
-            className="flex-1 max-h-[120px] resize-none bg-transparent px-3.5 py-2 text-xs sm:text-sm text-black placeholder:text-black/40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed leading-relaxed"
+            className="flex-1 min-h-[36px] max-h-[100px] resize-none bg-transparent px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs sm:text-sm text-black placeholder:text-black/40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed leading-relaxed"
           />
 
           {/* Character counter (appears near limit) */}
           {isNearLimit && (
             <span
-              className={`text-[11px] font-medium pb-2 pr-2 select-none ${
+              className={`text-[10px] sm:text-[11px] font-medium pb-2 pr-2 select-none ${
                 text.length >= MAX_CHARS ? "text-red-500 font-bold" : "text-black/50"
               }`}
               aria-live="polite"
@@ -116,17 +116,16 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
             disabled={!canSend}
             aria-disabled={!canSend}
             aria-label={t("sendAriaLabel")}
-            className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-black text-white shadow-xs transition-all duration-150 ${
+            className={`flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full bg-black text-white shadow-xs transition-all duration-150 ${
               canSend
                 ? "hover:bg-black/85 active:scale-95 cursor-pointer"
                 : "opacity-40 cursor-not-allowed"
             } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2`}
           >
-            <ArrowUp className="h-4 w-4" />
+            <ArrowUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </button>
         </div>
       </form>
     </div>
   )
 }
-
