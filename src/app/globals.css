@@ -7,6 +7,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-discount-bg: var(--discount-bg);
+  --color-discount-fg: var(--discount-fg);
+  --color-star: var(--star);
+  --color-verified: var(--verified);
   --color-rating: var(--rating);
   --color-wishlist: var(--wishlist);
   --color-sale: var(--sale);
@@ -25,7 +30,8 @@
   --color-status-refunded-text: var(--status-refunded-text);
   --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-display, var(--font-sans));
+  --font-display: var(--font-archivo), "Archivo", sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -62,96 +68,142 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Semantic brand tokens mapped to SHOP.CO foundation */
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-deep: var(--brand-primary-deep);
+  --color-brand-ai-accent: var(--brand-ai-accent);
+  --color-brand-deal: var(--brand-deal);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-success: var(--brand-success);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  /* ── SHOP.CO Design Foundation — Light Tokens ──────────────────────────── */
+  --background: #FFFFFF;
+  --foreground: #000000;
+  --card: #FFFFFF;
+  --card-foreground: #000000;
+  --popover: #FFFFFF;
+  --popover-foreground: #000000;
+  --primary: #000000;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F0EEED;
+  --secondary-foreground: #000000;
+  --muted: #F0EEED;
+  --muted-foreground: rgba(0, 0, 0, 0.6);
+  --accent: #F0EEED;
+  --accent-foreground: #000000;
+  --destructive: #FF3333;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: rgba(0, 0, 0, 0.1);
+  --ring: #000000;
+  --chart-1: #000000;
+  --chart-2: #333333;
+  --chart-3: #666666;
+  --chart-4: #FFC633;
+  --chart-5: #01AB31;
+  --radius: 0.5rem;
 
-  /* Store accent colors — edit these to retheme the store */
-  --rating: oklch(0.795 0.184 86.047); /* yellow-400 */
-  --wishlist: oklch(0.637 0.237 25.331); /* red-500 */
-  --sale: oklch(0.795 0.184 86.047); /* yellow-400 */
-  --success: oklch(0.627 0.194 149.214); /* green-600 */
+  /* SHOP.CO palette */
+  --surface: #F0EEED;
+  --discount-bg: #FFEBEB;
+  --discount-fg: #FF3333;
+  --star: #FFC633;
+  --rating: #FFC633;
+  --verified: #01AB31;
+  --success: #01AB31;
+  --sale: #FF3333;
+  --wishlist: #FF3333;
+
+  /* PayPilot AI brand mappings */
+  --brand-primary: #000000;
+  --brand-primary-deep: #000000;
+  --brand-ai-accent: #000000;
+  --brand-deal: #FF3333;
+  --brand-surface: #F0EEED;
+  --brand-success: #01AB31;
+  --brand-gradient: linear-gradient(135deg, #000000, #333333, #000000);
 
   /* Order status colors */
-  --status-pending-bg: oklch(0.962 0.059 95.617); /* yellow-100 */
-  --status-pending-text: oklch(0.476 0.114 61.907); /* yellow-800 */
-  --status-processing-bg: oklch(0.932 0.032 255.585); /* blue-100 */
-  --status-processing-text: oklch(0.424 0.199 265.638); /* blue-800 */
-  --status-shipped-bg: oklch(0.946 0.033 307.174); /* purple-100 */
-  --status-shipped-text: oklch(0.438 0.218 303.724); /* purple-800 */
-  --status-delivered-bg: oklch(0.962 0.044 156.643); /* green-100 */
-  --status-delivered-text: oklch(0.405 0.128 151.328); /* green-800 */
-  --status-cancelled-bg: oklch(0.963 0.022 17.078); /* red-100 */
-  --status-cancelled-text: oklch(0.444 0.177 26.899); /* red-800 */
-  --status-refunded-bg: oklch(0.962 0 0); /* gray-100 */
-  --status-refunded-text: oklch(0.37 0 0); /* gray-800 */
+  --status-pending-bg: #F0EEED;
+  --status-pending-text: #000000;
+  --status-processing-bg: #F0EEED;
+  --status-processing-text: #000000;
+  --status-shipped-bg: #F0EEED;
+  --status-shipped-text: #000000;
+  --status-delivered-bg: #E7F7ED;
+  --status-delivered-text: #01AB31;
+  --status-cancelled-bg: #FFEBEB;
+  --status-cancelled-text: #FF3333;
+  --status-refunded-bg: #F0EEED;
+  --status-refunded-text: #000000;
 
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #000000;
+  --sidebar-primary: #000000;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F0EEED;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: rgba(0, 0, 0, 0.1);
+  --sidebar-ring: #000000;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* ── SHOP.CO Design Foundation — Dark Tokens ───────────────────────────── */
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --card: #121212;
+  --card-foreground: #FFFFFF;
+  --popover: #121212;
+  --popover-foreground: #FFFFFF;
+  --primary: #FFFFFF;
+  --primary-foreground: #000000;
+  --secondary: #1F1F1F;
+  --secondary-foreground: #FFFFFF;
+  --muted: #1F1F1F;
+  --muted-foreground: rgba(255, 255, 255, 0.6);
+  --accent: #1F1F1F;
+  --accent-foreground: #FFFFFF;
+  --destructive: #FF3333;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(255, 255, 255, 0.15);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #FFFFFF;
+  --chart-1: #FFFFFF;
+  --chart-2: #CCCCCC;
+  --chart-3: #999999;
+  --chart-4: #FFC633;
+  --chart-5: #01AB31;
+
+  /* Palette */
+  --surface: #1A1A1A;
+  --discount-bg: #331414;
+  --discount-fg: #FF6666;
+  --star: #FFC633;
+  --rating: #FFC633;
+  --verified: #01AB31;
+  --success: #01AB31;
+  --sale: #FF6666;
+  --wishlist: #FF6666;
+
+  --brand-primary: #FFFFFF;
+  --brand-primary-deep: #E5E5E5;
+  --brand-surface: #1A1A1A;
+  --brand-ai-accent: #FFFFFF;
+  --brand-deal: #FF6666;
+  --brand-success: #01AB31;
+  --brand-gradient: linear-gradient(135deg, #FFFFFF, #CCCCCC, #FFFFFF);
+
+  --sidebar: #000000;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #FFFFFF;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #1F1F1F;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: rgba(255, 255, 255, 0.15);
+  --sidebar-ring: #FFFFFF;
 }
 
 @layer base {
@@ -263,4 +315,273 @@
 
 .blog-body th {
   @apply bg-muted font-semibold;
+}
+
+/* ============================================================================
+   PayPilot AI — Utility classes
+   ============================================================================ */
+
+.font-display {
+  font-family: var(--font-archivo), "Archivo", sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
+
+@utility text-gradient {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@utility bg-brand-gradient {
+  background: var(--brand-gradient);
+}
+
+@utility glass {
+  background: oklch(from var(--brand-surface) l c h / 60%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid oklch(1 0 0 / 12%);
+}
+
+/* ============================================================================
+   PayPilot AI / SHOP.CO — Motion primitives
+   ============================================================================ */
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes sparkle-spin {
+    from {
+      transform: rotate(0deg) scale(1);
+    }
+    50% {
+      transform: rotate(180deg) scale(1.15);
+    }
+    to {
+      transform: rotate(360deg) scale(1);
+    }
+  }
+
+  @keyframes sparkle-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.85;
+    }
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out both;
+  }
+
+  .animate-marquee {
+    animation: marquee 20s linear infinite;
+  }
+
+  .animate-sparkle-spin {
+    animation: sparkle-spin 10s linear infinite;
+  }
+
+  .animate-sparkle-pulse {
+    animation: sparkle-pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  @keyframes gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* ── Hero blob drift ─────────────────────────────────────────────────── */
+  @keyframes blob-drift-1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%      { transform: translate(60px, -40px) scale(1.05); }
+    66%      { transform: translate(-30px, 30px) scale(0.97); }
+  }
+  @keyframes blob-drift-2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%      { transform: translate(-50px, 50px) scale(1.08); }
+    66%      { transform: translate(40px, -20px) scale(0.95); }
+  }
+  @keyframes blob-drift-3 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%      { transform: translate(30px, 40px) scale(0.96); }
+    66%      { transform: translate(-50px, -30px) scale(1.06); }
+  }
+
+  .hero-blob--indigo { animation: blob-drift-1 18s ease-in-out infinite; }
+  .hero-blob--violet { animation: blob-drift-2 22s ease-in-out infinite; }
+  .hero-blob--cyan   { animation: blob-drift-3 20s ease-in-out infinite; }
+
+  /* ── Hero floating mockup ──────────────────────────────────────────── */
+  .hero-float { animation: float 5s ease-in-out infinite; }
+
+  /* ── Hero cursor blink ─────────────────────────────────────────────── */
+  @keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0; }
+  }
+  .hero-cursor { animation: cursor-blink 0.8s steps(1) infinite; }
+
+  /* ── Staggered fade-up ─────────────────────────────────────────────── */
+  .hero-stagger {
+    animation: fade-up 0.5s ease-out both;
+  }
+  .hero-stagger--1 { animation-delay: 0.04s; }
+  .hero-stagger--2 { animation-delay: 0.10s; }
+  .hero-stagger--3 { animation-delay: 0.16s; }
+  .hero-stagger--4 { animation-delay: 0.22s; }
+  .hero-stagger--5 { animation-delay: 0.28s; }
+  .hero-stagger--6 { animation-delay: 0.34s; }
+  .hero-stagger--7 { animation-delay: 0.40s; }
+}
+
+/* ── Scroll Reveal ──────────────────────────────────────────────────── */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.scroll-reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Product Card Quick Add ─────────────────────────────────────────── */
+.product-quick-add {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+@media (hover: hover) {
+  .product-quick-add {
+    opacity: 0;
+    transform: translateY(100%);
+    pointer-events: none;
+    transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+  }
+  .group:hover .product-quick-add,
+  .group:focus-within .product-quick-add {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+}
+
+/* ── Category Card Hover Glow ───────────────────────────────────────── */
+.category-card {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.category-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--brand-primary);
+  box-shadow: 0 12px 28px -5px rgba(0, 0, 0, 0.12), 0 0 16px 0 rgba(0, 0, 0, 0.08);
+}
+
+/* ── Reduced-motion: show everything immediately, no animation ──────── */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-marquee,
+  .animate-sparkle-spin,
+  .animate-sparkle-pulse,
+  .hero-blob,
+  .hero-float,
+  .hero-cursor,
+  .hero-stagger,
+  .scroll-reveal,
+  .scroll-reveal-visible,
+  [data-reveal],
+  .category-card,
+  .product-quick-add {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}
+
+/* ── Fallback when JavaScript is disabled (content is never hidden) ──── */
+@media (scripting: none) {
+  .scroll-reveal,
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    pointer-events: auto !important;
+  }
 }

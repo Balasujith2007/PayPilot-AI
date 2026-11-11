@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Suspense } from "react"
+import { ChevronRight } from "lucide-react"
 import { productRepository, categoryRepository } from "@/lib/repositories"
 import { ProductGrid } from "@/components/products/product-grid"
 import { Pagination } from "@/components/products/pagination"
@@ -66,11 +67,38 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   if (searchQuery) currentParams.q = searchQuery
 
   return (
-    <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      {/* Breadcrumb: Home > Shop */}
+      <nav aria-label="Breadcrumb" className="mb-6 sm:mb-8">
+        <ol className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-black/60">
+          <li>
+            <Link href="/" className="hover:text-black transition-colors">
+              Home
+            </Link>
+          </li>
+          <li aria-hidden="true" className="text-black/30">
+            <ChevronRight className="h-3.5 w-3.5" />
+          </li>
+          <li className="font-medium text-black" aria-current="page">
+            Shop
+          </li>
+          {categorySlug && (
+            <>
+              <li aria-hidden="true" className="text-black/30">
+                <ChevronRight className="h-3.5 w-3.5" />
+              </li>
+              <li className="font-medium text-black">
+                {categories.find((c) => c.slug === categorySlug)?.name ?? categorySlug}
+              </li>
+            </>
+          )}
+        </ol>
+      </nav>
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-[40px] font-black uppercase tracking-tight text-black">
             {categorySlug
               ? categories.find((c) => c.slug === categorySlug)?.name ??
                 "Shop"
@@ -78,7 +106,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
                 ? `Results for "${searchQuery}"`
                 : "All Products"}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-black/60">
             {pagination.total} {pagination.total === 1 ? "product" : "products"}
           </p>
         </div>

@@ -5,10 +5,10 @@
 
 export const siteConfig = {
   // Branding
-  name: "Next.js Ecommerce Starter",
+  name: "PayPilot AI",
   tagline: "A free, open-source Next.js ecommerce template.",
   description:
-    "A free, production-ready Next.js ecommerce starter template built with Tailwind CSS and shadcn/ui. Responsive, accessible, SEO optimized, and ready to connect to any checkout system. Built by Epic Design Labs.",
+    "A free, production-ready ecommerce starter template built with Tailwind CSS and shadcn/ui. Responsive, accessible, SEO optimized, and ready to connect to any checkout system. Built by Epic Design Labs.",
 
   // Announcement bar (set to "" to hide)
   announcement: "Free shipping on all orders over $75 — Shop now!",
@@ -43,8 +43,8 @@ export const siteConfig = {
   taxRate: 0.08, // 8%
 
   // Currency & locale
-  currency: "USD",
-  locale: "en-US",
+  currency: "INR",
+  locale: "en-IN",
 
   // Legal
   copyrightYear: new Date().getFullYear(),
