@@ -84,15 +84,15 @@ export async function sendMessage(
 
   const conversationId = req.conversationId || `conv_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 
-  // Multi-paragraph reply with bullet list for rich display testing
-  const reply = `I found some great options in our curated catalog that match your search!
+  // Multi-paragraph reply with bold text, bullet list, and auto-link for rich display testing
+  const reply = `I found some **curated options** in our catalog that match your search!
 
 Here is what makes these recommendations stand out:
-- Handcrafted with verified premium materials
-- Backed by transparent reviews and solid warranties
-- Ships quickly with hassle-free 30-day returns
+- Handcrafted with **verified premium materials**
+- Backed by transparent customer reviews and solid warranties
+- Ships quickly with hassle-free **30-day returns**
 
-Let me know if you would like to compare them or narrow down by budget!`
+You can learn more about our store policies at https://paypilot-ai.com/policies or let me know if you would like to compare them!`
 
   return {
     conversationId,

@@ -290,6 +290,8 @@
     "rowTags": "Tags",
     "rowReason": "Why it's recommended",
     "compareTrayAria": "Product comparison tray",
-    "compareTableCaption": "Comparison table of selected products"
+    "compareTableCaption": "Comparison table of selected products",
+    "assistantTyping": "Assistant is typing",
+    "tryAgain": "Try again"
   }
 }

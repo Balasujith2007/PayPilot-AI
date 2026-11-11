@@ -128,12 +128,86 @@ export function useShoppingAssistant() {
     ]
   )
 
+  const retryLastMessage = useCallback(async () => {
+    if (!lastRequest || status === "loading") return
+
+    // Find the last user message that failed
+    const lastUserMsg = [...messages].reverse().find((m) => m.role === "user")
+    if (!lastUserMsg) return
+
+    // Clear its error status
+    updateMessage(lastUserMsg.id, { status: "sent" })
+    setStatus("loading")
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+    const currentReqId = ++activeReqIdRef.current
+
+    try {
+      const response = await sendMessage(
+        {
+          message: lastRequest,
+          conversationId: conversationId ?? undefined,
+        },
+        {
+          signal: controller.signal,
+          catalogProducts,
+        }
+      )
+
+      if (currentReqId !== activeReqIdRef.current) return
+
+      setConversationId(response.conversationId)
+
+      const assistantMsgId = `asst_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+      const assistantMessage: ChatMessage = {
+        id: assistantMsgId,
+        role: "assistant",
+        content: response.reply,
+        timestamp: Date.now(),
+        isMock: response.isMock,
+        products: response.recommendedProducts,
+        status: "sent",
+      }
+
+      addMessage(assistantMessage)
+      setStatus("idle")
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") {
+        return
+      }
+
+      if (currentReqId !== activeReqIdRef.current) return
+
+      updateMessage(lastUserMsg.id, { status: "error" })
+      setStatus("error")
+    } finally {
+      if (currentReqId === activeReqIdRef.current) {
+        abortControllerRef.current = null
+      }
+    }
+  }, [
+    lastRequest,
+    status,
+    messages,
+    conversationId,
+    catalogProducts,
+    updateMessage,
+    setStatus,
+    setConversationId,
+    addMessage,
+  ])
+
   return {
     messages,
     conversationId,
     status,
     lastRequest,
     sendMessage: send,
+    retryLastMessage,
     clearConversation,
   }
 }

@@ -2,12 +2,14 @@
 
 import React, { memo } from "react"
 import { useTranslations } from "next-intl"
-import { Sparkles, AlertCircle } from "lucide-react"
+import { Sparkles, AlertCircle, RotateCw } from "lucide-react"
 import { RecommendationList } from "@/components/ai-assistant/chat/RecommendationList"
+import { formatAssistantMessage } from "@/lib/ai-assistant/format-message"
 import type { ChatMessage as ChatMessageType } from "@/types/ai-assistant"
 
 export interface ChatMessageProps {
   message: ChatMessageType
+  onRetry?: () => void
 }
 
 function formatTime(timestamp: number): string {
@@ -24,6 +26,7 @@ function formatTime(timestamp: number): string {
 
 export const ChatMessage = memo(function ChatMessage({
   message,
+  onRetry,
 }: ChatMessageProps) {
   const t = useTranslations("assistant")
   const isUser = message.role === "user"
@@ -55,13 +58,13 @@ export const ChatMessage = memo(function ChatMessage({
         <div className="flex flex-col flex-1 min-w-0">
           {/* Message Bubble */}
           <div
-            className={`relative px-4 py-3 text-sm sm:text-base leading-relaxed break-words whitespace-pre-wrap shadow-2xs ${
+            className={`relative px-4 py-3 text-sm sm:text-base leading-relaxed break-words shadow-2xs ${
               isUser
-                ? "bg-black text-white rounded-[20px] rounded-br-[4px] self-end"
+                ? "bg-black text-white rounded-[20px] rounded-br-[4px] self-end whitespace-pre-wrap"
                 : "max-w-[85%] sm:max-w-[75%] lg:max-w-[70%] bg-[#F0EEED] text-black rounded-[20px] rounded-bl-[4px] self-start"
             }`}
           >
-            {message.content}
+            {isUser ? message.content : formatAssistantMessage(message.content)}
           </div>
 
           {/* Metadata Row: Timestamp + Demo Response Badge */}
@@ -78,14 +81,27 @@ export const ChatMessage = memo(function ChatMessage({
             <span>{formatTime(message.timestamp)}</span>
           </div>
 
-          {/* Inline Error Notice */}
+          {/* Inline Error Notice with Retry Button */}
           {isError && (
             <div
               role="alert"
-              className="mt-1.5 flex items-center gap-1.5 text-xs text-red-600 font-medium px-1"
+              className="mt-2 flex flex-wrap items-center gap-2 text-xs text-red-600 font-medium px-1"
             >
-              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-              <span>{t("errorMessage")}</span>
+              <div className="flex items-center gap-1.5">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{t("errorMessage")}</span>
+              </div>
+              {onRetry && (
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="inline-flex min-h-[44px] min-w-[44px] items-center gap-1.5 rounded-full border border-red-300 bg-red-50/60 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100/80 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 cursor-pointer"
+                  aria-label={t("tryAgain")}
+                >
+                  <RotateCw className="h-3 w-3 shrink-0" />
+                  <span>{t("tryAgain")}</span>
+                </button>
+              )}
             </div>
           )}
 

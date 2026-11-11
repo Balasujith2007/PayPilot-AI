@@ -8,12 +8,13 @@ import { useChatStore } from "@/store/chat"
 import { ChatMessage } from "@/components/ai-assistant/chat/ChatMessage"
 import { ChatInput } from "@/components/ai-assistant/chat/ChatInput"
 import { SuggestedPrompts } from "@/components/ai-assistant/SuggestedPrompts"
+import { TypingIndicator } from "@/components/ai-assistant/chat/TypingIndicator"
 import { CompareTray } from "@/components/ai-assistant/compare/CompareTray"
 import { ComparisonView } from "@/components/ai-assistant/compare/ComparisonView"
 
 export function ChatInterface() {
   const t = useTranslations("assistant")
-  const { messages, status, sendMessage, clearConversation } =
+  const { messages, status, sendMessage, clearConversation, retryLastMessage } =
     useShoppingAssistant()
 
   const compareIds = useChatStore((s) => s.compareIds)
@@ -43,9 +44,13 @@ export function ChatInterface() {
     }
   }, [])
 
-  // Auto-scroll when new messages arrive
+  const hasMessages = messages.length > 0
+  const isLoading = status === "loading"
+  const canCompare = compareIds.length >= 2
+
+  // Auto-scroll when new messages arrive or loading state changes
   useEffect(() => {
-    if (messages.length === 0) return
+    if (messages.length === 0 && !isLoading) return
 
     const frameId = window.requestAnimationFrame(() => {
       if (isNearBottomRef.current) {
@@ -60,18 +65,14 @@ export function ChatInterface() {
     })
 
     return () => window.cancelAnimationFrame(frameId)
-  }, [messages])
-
-  const hasMessages = messages.length > 0
-  const isLoading = status === "loading"
-  const canCompare = compareIds.length >= 2
+  }, [messages, isLoading])
 
   return (
     <>
       <section
         role="region"
         aria-label={t("chatRegionAria")}
-        className="flex flex-col w-full h-[calc(100dvh-8.5rem)] sm:h-[clamp(560px,calc(100dvh-12rem),800px)] rounded-[20px] border border-black/10 bg-white shadow-xs overflow-hidden"
+        className="flex flex-col w-full h-[calc(100dvh-10.5rem)] sm:h-[clamp(560px,calc(100dvh-12rem),800px)] rounded-[20px] border border-black/10 bg-white shadow-xs overflow-hidden"
       >
         {/* Top Bar (Single Sleek Row on Mobile & Desktop) */}
         <header className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-6 sm:py-3.5 border-b border-black/10 bg-white shrink-0">
@@ -96,11 +97,11 @@ export function ChatInterface() {
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               type="button"
-              disabled={!hasMessages}
+              disabled={!hasMessages || isLoading}
               onClick={clearConversation}
-              aria-disabled={!hasMessages}
-              className={`rounded-full border px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${
-                hasMessages
+              aria-disabled={!hasMessages || isLoading}
+              className={`rounded-full border px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${
+                hasMessages && !isLoading
                   ? "border-black/20 text-black hover:bg-[#F0EEED] cursor-pointer"
                   : "border-black/15 text-black/40 cursor-not-allowed opacity-60"
               }`}
@@ -113,7 +114,7 @@ export function ChatInterface() {
               disabled={!canCompare}
               onClick={() => setCompareOpen(true)}
               aria-disabled={!canCompare}
-              className={`rounded-full border px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${
+              className={`rounded-full border px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${
                 canCompare
                   ? "border-black/20 text-black hover:bg-[#F0EEED] cursor-pointer"
                   : "border-black/15 text-black/40 cursor-not-allowed opacity-60"
@@ -128,32 +129,34 @@ export function ChatInterface() {
         {/* Main Area: Welcome State or Message List */}
         <div className="relative flex-1 min-h-0 overflow-hidden flex flex-col">
           {!hasMessages ? (
-            /* Welcome State (uses my-auto to prevent flex cutoff bug) */
-            <div className="flex-1 overflow-y-auto px-3.5 py-4 sm:px-8 sm:py-8 flex flex-col text-center">
-              <div className="my-auto flex flex-col items-center justify-center py-2">
-                <div className="relative mb-3 sm:mb-4 flex items-center justify-center">
+            /* Welcome State */
+            <div className="flex-1 overflow-y-auto px-3.5 py-3 sm:px-8 sm:py-8 flex flex-col text-center">
+              <div className="my-auto flex flex-col items-center justify-center py-1 sm:py-2">
+                <div className="relative mb-2.5 sm:mb-4 flex items-center justify-center">
                   <div
                     className="absolute inset-0 rounded-full bg-black/10 blur-xl animate-sparkle-pulse motion-reduce:animate-none"
                     aria-hidden="true"
                   />
                   <div
-                    className="relative flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-black text-white shadow-[0_4px_16px_rgba(0,0,0,0.18)]"
+                    className="relative flex h-10 w-10 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-black text-white shadow-[0_4px_16px_rgba(0,0,0,0.18)]"
                     aria-hidden="true"
                   >
                     <Sparkles className="h-5 w-5 sm:h-7 sm:w-7 animate-sparkle-pulse motion-reduce:animate-none" />
                   </div>
                 </div>
 
-                <h1 className="font-display text-lg sm:text-2xl lg:text-3xl font-black uppercase tracking-tight text-black max-w-xl leading-[1.15]">
+                <h1 className="font-display text-base sm:text-2xl lg:text-3xl font-black uppercase tracking-tight text-black max-w-xl leading-[1.15]">
                   {t("welcomeHeading")}
                 </h1>
 
-                <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-black/60 max-w-md leading-relaxed px-2">
+                <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-black/60 max-w-md leading-relaxed px-2">
                   {t("welcomeDescription")}
                 </p>
 
-                <div className="mt-4 sm:mt-6 w-full">
-                  <SuggestedPrompts onPromptSelect={sendMessage} />
+                <div className="mt-3.5 sm:mt-6 w-full">
+                  <SuggestedPrompts
+                    onPromptSelect={isLoading ? undefined : sendMessage}
+                  />
                 </div>
               </div>
             </div>
@@ -167,9 +170,14 @@ export function ChatInterface() {
               aria-label="Chat messages"
               className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-3.5 sm:space-y-6"
             >
-              {messages.map((msg) => (
-                <ChatMessage key={msg.id} message={msg} />
+              {messages.map((msg, idx) => (
+                <ChatMessage
+                  key={msg.id}
+                  message={msg}
+                  onRetry={idx === messages.length - 1 ? retryLastMessage : undefined}
+                />
               ))}
+              {isLoading && <TypingIndicator />}
               <div ref={messagesEndRef} aria-hidden="true" />
             </div>
           )}
