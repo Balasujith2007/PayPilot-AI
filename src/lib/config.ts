@@ -11,7 +11,7 @@ export const siteConfig = {
     "A free, production-ready ecommerce starter template built with Tailwind CSS and shadcn/ui. Responsive, accessible, SEO optimized, and ready to connect to any checkout system. Built by Epic Design Labs.",
 
   // Announcement bar (set to "" to hide)
-  announcement: "Free shipping on all orders over $75 — Shop now!",
+  announcement: "Free delivery on all orders over ₹999 — Shop now!",
 
   // URLs
   url: process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000",
@@ -39,7 +39,7 @@ export const siteConfig = {
   },
 
   // Shipping
-  freeShippingThreshold: 7500, // in cents ($75.00)
+  freeShippingThreshold: 99900, // in cents (₹999.00)
   taxRate: 0.08, // 8%
 
   // Currency & locale

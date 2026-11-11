@@ -8,7 +8,7 @@ const TRUST_BADGES = [
   {
     icon: Truck,
     title: "Free Fast Delivery",
-    description: "Complimentary shipping on orders over ₹75.00 with tracked doorstep delivery.",
+    description: "Complimentary shipping on orders over ₹999 with tracked doorstep delivery.",
     iconColor: "text-brand-primary",
     iconBg: "bg-brand-primary/10",
   },

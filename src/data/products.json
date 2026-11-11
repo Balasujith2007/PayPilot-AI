@@ -116,9 +116,9 @@
           "productId": "prod-1",
           "sku": "WH-BLK-001",
           "name": "Black",
-          "price": 7999,
-          "compareAtPrice": 9999,
-          "currency": "USD",
+          "price": 799900,
+          "compareAtPrice": 999900,
+          "currency": "INR",
           "inventory": {
             "quantity": 50,
             "trackInventory": true,
@@ -137,9 +137,9 @@
           "productId": "prod-1",
           "sku": "WH-WHT-001",
           "name": "White",
-          "price": 7999,
-          "compareAtPrice": 9999,
-          "currency": "USD",
+          "price": 799900,
+          "compareAtPrice": 999900,
+          "currency": "INR",
           "inventory": {
             "quantity": 35,
             "trackInventory": true,
@@ -190,8 +190,8 @@
           "productId": "prod-2",
           "sku": "DL-SLV-001",
           "name": "Silver",
-          "price": 4500,
-          "currency": "USD",
+          "price": 349900,
+          "currency": "INR",
           "inventory": {
             "quantity": 25,
             "trackInventory": true,
@@ -210,8 +210,8 @@
           "productId": "prod-2",
           "sku": "DL-BLK-001",
           "name": "Matte Black",
-          "price": 4500,
-          "currency": "USD",
+          "price": 349900,
+          "currency": "INR",
           "inventory": {
             "quantity": 18,
             "trackInventory": true,
@@ -262,8 +262,8 @@
           "productId": "prod-3",
           "sku": "TS-WHT-S",
           "name": "White / S",
-          "price": 2999,
-          "currency": "USD",
+          "price": 129900,
+          "currency": "INR",
           "inventory": {
             "quantity": 100,
             "trackInventory": true,
@@ -279,15 +279,16 @@
               "value": "S"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 169900
         },
         {
           "id": "var-3-2",
           "productId": "prod-3",
           "sku": "TS-WHT-M",
           "name": "White / M",
-          "price": 2999,
-          "currency": "USD",
+          "price": 129900,
+          "currency": "INR",
           "inventory": {
             "quantity": 80,
             "trackInventory": true,
@@ -303,15 +304,16 @@
               "value": "M"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 169900
         },
         {
           "id": "var-3-3",
           "productId": "prod-3",
           "sku": "TS-WHT-L",
           "name": "White / L",
-          "price": 2999,
-          "currency": "USD",
+          "price": 129900,
+          "currency": "INR",
           "inventory": {
             "quantity": 60,
             "trackInventory": true,
@@ -327,15 +329,16 @@
               "value": "L"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 169900
         },
         {
           "id": "var-3-4",
           "productId": "prod-3",
           "sku": "TS-BLK-M",
           "name": "Black / M",
-          "price": 2999,
-          "currency": "USD",
+          "price": 129900,
+          "currency": "INR",
           "inventory": {
             "quantity": 70,
             "trackInventory": true,
@@ -351,7 +354,8 @@
               "value": "M"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 169900
         }
       ],
       "featured": true,
@@ -391,8 +395,8 @@
           "productId": "prod-4",
           "sku": "PO-WHT-001",
           "name": "Default",
-          "price": 3800,
-          "currency": "USD",
+          "price": 249900,
+          "currency": "INR",
           "inventory": {
             "quantity": 40,
             "trackInventory": true,
@@ -443,8 +447,8 @@
           "productId": "prod-5",
           "sku": "PW-TAN-001",
           "name": "Tan",
-          "price": 5200,
-          "currency": "USD",
+          "price": 299900,
+          "currency": "INR",
           "inventory": {
             "quantity": 30,
             "trackInventory": true,
@@ -456,15 +460,16 @@
               "value": "Tan"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 399900
         },
         {
           "id": "var-5-2",
           "productId": "prod-5",
           "sku": "PW-BRN-001",
           "name": "Dark Brown",
-          "price": 5200,
-          "currency": "USD",
+          "price": 299900,
+          "currency": "INR",
           "inventory": {
             "quantity": 22,
             "trackInventory": true,
@@ -476,7 +481,8 @@
               "value": "Dark Brown"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 399900
         }
       ],
       "featured": false,
@@ -514,8 +520,8 @@
           "productId": "prod-6",
           "sku": "CB-12OZ-001",
           "name": "12oz Bag",
-          "price": 1850,
-          "currency": "USD",
+          "price": 89900,
+          "currency": "INR",
           "inventory": {
             "quantity": 200,
             "trackInventory": true,
@@ -534,8 +540,8 @@
           "productId": "prod-6",
           "sku": "CB-2LB-001",
           "name": "2lb Bag",
-          "price": 3200,
-          "currency": "USD",
+          "price": 89900,
+          "currency": "INR",
           "inventory": {
             "quantity": 80,
             "trackInventory": true,
@@ -586,8 +592,8 @@
           "productId": "prod-7",
           "sku": "BS-BLK-001",
           "name": "Charcoal",
-          "price": 5999,
-          "currency": "USD",
+          "price": 499900,
+          "currency": "INR",
           "inventory": {
             "quantity": 45,
             "trackInventory": true,
@@ -599,15 +605,16 @@
               "value": "Charcoal"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 649900
         },
         {
           "id": "var-7-2",
           "productId": "prod-7",
           "sku": "BS-GRN-001",
           "name": "Forest Green",
-          "price": 5999,
-          "currency": "USD",
+          "price": 499900,
+          "currency": "INR",
           "inventory": {
             "quantity": 30,
             "trackInventory": true,
@@ -619,7 +626,8 @@
               "value": "Forest Green"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 649900
         }
       ],
       "featured": false,
@@ -657,8 +665,8 @@
           "productId": "prod-8",
           "sku": "LP-NAT-001",
           "name": "Natural",
-          "price": 3400,
-          "currency": "USD",
+          "price": 149900,
+          "currency": "INR",
           "inventory": {
             "quantity": 60,
             "trackInventory": true,
@@ -677,8 +685,8 @@
           "productId": "prod-8",
           "sku": "LP-SLT-001",
           "name": "Slate",
-          "price": 3400,
-          "currency": "USD",
+          "price": 149900,
+          "currency": "INR",
           "inventory": {
             "quantity": 40,
             "trackInventory": true,
@@ -728,8 +736,8 @@
           "productId": "prod-9",
           "sku": "WB-OLV-001",
           "name": "Olive",
-          "price": 8900,
-          "currency": "USD",
+          "price": 599900,
+          "currency": "INR",
           "inventory": {
             "quantity": 15,
             "trackInventory": true,
@@ -741,7 +749,8 @@
               "value": "Olive"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 799900
         }
       ],
       "featured": true,
@@ -779,8 +788,8 @@
           "productId": "prod-10",
           "sku": "NB-BLK-A5",
           "name": "Black / A5",
-          "price": 2200,
-          "currency": "USD",
+          "price": 79900,
+          "currency": "INR",
           "inventory": {
             "quantity": 150,
             "trackInventory": true,
@@ -803,8 +812,8 @@
           "productId": "prod-10",
           "sku": "NB-NVY-A5",
           "name": "Navy / A5",
-          "price": 2200,
-          "currency": "USD",
+          "price": 79900,
+          "currency": "INR",
           "inventory": {
             "quantity": 90,
             "trackInventory": true,
@@ -859,8 +868,8 @@
           "productId": "prod-11",
           "sku": "BN-CHR-001",
           "name": "Charcoal",
-          "price": 3500,
-          "currency": "USD",
+          "price": 189900,
+          "currency": "INR",
           "inventory": {
             "quantity": 75,
             "trackInventory": true,
@@ -872,15 +881,16 @@
               "value": "Charcoal"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 249900
         },
         {
           "id": "var-11-2",
           "productId": "prod-11",
           "sku": "BN-CRM-001",
           "name": "Cream",
-          "price": 3500,
-          "currency": "USD",
+          "price": 189900,
+          "currency": "INR",
           "inventory": {
             "quantity": 55,
             "trackInventory": true,
@@ -892,7 +902,8 @@
               "value": "Cream"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 249900
         }
       ],
       "featured": false,
@@ -930,8 +941,8 @@
           "productId": "prod-12",
           "sku": "SC-CED-001",
           "name": "Cedar & Sage",
-          "price": 2800,
-          "currency": "USD",
+          "price": 119900,
+          "currency": "INR",
           "inventory": {
             "quantity": 90,
             "trackInventory": true,
@@ -950,8 +961,8 @@
           "productId": "prod-12",
           "sku": "SC-LVN-001",
           "name": "Lavender & Eucalyptus",
-          "price": 2800,
-          "currency": "USD",
+          "price": 119900,
+          "currency": "INR",
           "inventory": {
             "quantity": 65,
             "trackInventory": true,
@@ -970,8 +981,8 @@
           "productId": "prod-12",
           "sku": "SC-VNL-001",
           "name": "Vanilla & Tonka",
-          "price": 2800,
-          "currency": "USD",
+          "price": 119900,
+          "currency": "INR",
           "inventory": {
             "quantity": 80,
             "trackInventory": true,
@@ -1022,8 +1033,8 @@
           "productId": "prod-13",
           "sku": "MS-SET-001",
           "name": "Default",
-          "price": 4200,
-          "currency": "USD",
+          "price": 329900,
+          "currency": "INR",
           "inventory": {
             "quantity": 20,
             "trackInventory": true,
@@ -1069,8 +1080,8 @@
           "productId": "prod-14",
           "sku": "WC-BLK-001",
           "name": "Black",
-          "price": 2499,
-          "currency": "USD",
+          "price": 219900,
+          "currency": "INR",
           "inventory": {
             "quantity": 120,
             "trackInventory": true,
@@ -1082,15 +1093,16 @@
               "value": "Black"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 289900
         },
         {
           "id": "var-14-2",
           "productId": "prod-14",
           "sku": "WC-WHT-001",
           "name": "White",
-          "price": 2499,
-          "currency": "USD",
+          "price": 219900,
+          "currency": "INR",
           "inventory": {
             "quantity": 85,
             "trackInventory": true,
@@ -1102,7 +1114,8 @@
               "value": "White"
             }
           ],
-          "images": []
+          "images": [],
+          "compareAtPrice": 289900
         }
       ],
       "featured": false,

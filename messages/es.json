@@ -260,6 +260,15 @@
     "noRecommendationsDesc": "Pregunta a PayPilot AI sobre productos, presupuestos o estilos para ver recomendaciones personalizadas aquí.",
     "chatRegionAria": "Chat del Asistente de Compras con IA",
     "recommendationsRegionAria": "Recomendaciones de productos",
-    "suggestedPromptsAria": "Sugerencias de preguntas"
+    "suggestedPromptsAria": "Sugerencias de preguntas",
+    "demoResponse": "Respuesta de demo",
+    "errorMessage": "Algo salió mal. Por favor, inténtalo de nuevo.",
+    "newMessage": "Nuevo mensaje",
+    "recommendedForYou": "Recomendado para ti",
+    "addToCart": "Añadir al carrito",
+    "viewProduct": "Ver producto",
+    "outOfStock": "Agotado",
+    "demoPick": "Selección de demo",
+    "addedToCart": "Añadido al carrito"
   }
 }

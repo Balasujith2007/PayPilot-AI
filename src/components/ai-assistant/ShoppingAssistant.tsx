@@ -1,20 +1,15 @@
 "use client"
 
-import React, { useCallback } from "react"
+import React from "react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { ChevronRight } from "lucide-react"
-import { ChatPanelShell } from "@/components/ai-assistant/ChatPanelShell"
+import { ChatInterface } from "@/components/ai-assistant/chat/ChatInterface"
 import { RecommendationsPanelShell } from "@/components/ai-assistant/RecommendationsPanelShell"
 import { Reveal } from "@/components/ui/scroll-reveal"
 
 export function ShoppingAssistant() {
   const t = useTranslations("assistant")
-
-  // Placeholder prop as specified in prompt: no-op for now
-  const handlePromptSelect = useCallback(() => {
-    // Placeholder prop - no-op for static UI shell
-  }, [])
 
   return (
     <div className="w-full bg-white overflow-x-hidden min-h-[calc(100dvh-4rem)]">
@@ -45,7 +40,7 @@ export function ShoppingAssistant() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           {/* Left Column: Chat Area */}
           <div className="w-full lg:col-span-8 animate-fade-up [animation-delay:0.05s] motion-reduce:animate-none">
-            <ChatPanelShell onPromptSelect={handlePromptSelect} />
+            <ChatInterface />
           </div>
 
           {/* Right Column: Recommendations Panel */}

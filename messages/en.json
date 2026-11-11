@@ -260,6 +260,15 @@
     "noRecommendationsDesc": "Ask PayPilot AI about products, budgets, or styles to see personalized recommendations here.",
     "chatRegionAria": "AI Shopping Assistant Chat",
     "recommendationsRegionAria": "Product Recommendations",
-    "suggestedPromptsAria": "Suggested prompts"
+    "suggestedPromptsAria": "Suggested prompts",
+    "demoResponse": "Demo response",
+    "errorMessage": "Something went wrong. Please try again.",
+    "newMessage": "New message",
+    "recommendedForYou": "Recommended for you",
+    "addToCart": "Add to cart",
+    "viewProduct": "View product",
+    "outOfStock": "Out of stock",
+    "demoPick": "Demo pick",
+    "addedToCart": "Added to cart"
   }
 }
