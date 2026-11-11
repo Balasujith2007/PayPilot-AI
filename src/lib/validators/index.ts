@@ -92,3 +92,39 @@ export const compareProductsSchema = z.object({
 })
 
 export type CompareProductsRequest = z.infer<typeof compareProductsSchema>
+
+// --- Budget recommendations ---
+
+const keywordListSchema = z.preprocess(
+  (value) => (typeof value === "string" ? value.split(",") : value),
+  z
+    .array(z.string().trim().max(50, "Each keyword must be 50 characters or fewer"))
+    .transform((list) => list.filter(Boolean))
+    .pipe(z.array(z.string()).max(10, "Use up to 10 keywords"))
+)
+
+export const budgetRequestSchema = z.object({
+  budget: z
+    .number({ error: "Budget must be a number (in cents)" })
+    .int("Budget must be a whole number of cents")
+    .positive("Budget must be greater than 0")
+    .max(100_000_000, "Budget is too large"),
+  currency: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{3}$/, "Currency must be a 3-letter ISO code")
+    .optional(),
+  category: z.string().trim().min(1, "Category is empty").max(64, "Category is too long").optional(),
+  keywords: keywordListSchema.optional(),
+  intendedUse: z.string().trim().max(200, "Intended use must be 200 characters or fewer").optional(),
+  maxAlternatives: z
+    .number({ error: "maxAlternatives must be a number" })
+    .int("maxAlternatives must be a whole number")
+    .min(0, "maxAlternatives cannot be negative")
+    .max(10, "maxAlternatives can be at most 10")
+    .optional(),
+  includeOutOfStock: z.boolean({ error: "includeOutOfStock must be true or false" }).optional(),
+})
+
+export type BudgetRequestInput = z.infer<typeof budgetRequestSchema>
