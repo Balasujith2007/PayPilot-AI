@@ -417,6 +417,10 @@
     animation: marquee 20s linear infinite;
   }
 
+  .animate-marquee-slow {
+    animation: marquee 35s linear infinite;
+  }
+
   .animate-sparkle-spin {
     animation: sparkle-spin 10s linear infinite;
   }
@@ -556,6 +560,7 @@
   .animate-fade-up,
   .animate-fade-in,
   .animate-marquee,
+  .animate-marquee-slow,
   .animate-sparkle-spin,
   .animate-sparkle-pulse,
   .hero-blob,

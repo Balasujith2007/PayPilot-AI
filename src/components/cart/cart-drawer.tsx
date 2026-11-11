@@ -1,9 +1,8 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ShoppingBag, X } from "lucide-react"
+import { ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -15,8 +14,8 @@ import {
 import { CartItem } from "./cart-item"
 import { useCartStore } from "@/store/cart"
 import { useAuthStore } from "@/store/auth"
-import { AuthRequiredDialog } from "@/components/auth/auth-required-dialog"
 import { formatPrice } from "@/lib/utils"
+import { toast } from "sonner"
 
 export function CartDrawer() {
   const router = useRouter()
@@ -26,23 +25,25 @@ export function CartDrawer() {
   const getSubtotal = useCartStore((s) => s.getSubtotal)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
-  const [authDialogOpen, setAuthDialogOpen] = useState(false)
-
   const subtotal = getSubtotal()
 
-  const handleCheckoutClick = (e: React.MouseEvent) => {
-    e.preventDefault()
+  const handleCheckoutClick = () => {
+    closeCart()
     if (!isAuthenticated) {
-      setAuthDialogOpen(true)
+      toast.info("Please sign in or create an account to proceed to checkout.")
+      router.push("/auth/login?redirect=/checkout")
     } else {
-      closeCart()
       router.push("/checkout")
     }
   }
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeCart()}>
-      <SheetContent side="right" className="flex !w-full flex-col !gap-0 sm:!w-3/4 sm:max-w-md" showCloseButton={false}>
+      <SheetContent
+        side="right"
+        className="flex !w-full flex-col !gap-0 sm:!w-3/4 sm:max-w-md"
+        showCloseButton={false}
+      >
         <SheetHeader>
           <div className="flex items-center justify-between">
             <button
@@ -56,12 +57,10 @@ export function CartDrawer() {
               className="hidden rounded-md p-1 text-muted-foreground hover:text-foreground sm:block sm:ml-auto"
               aria-label="Close cart"
             >
-              <X className="h-5 w-5" />
+              &times;
             </button>
+            <SheetTitle className="sr-only">Shopping Cart</SheetTitle>
           </div>
-          <SheetTitle className="mt-2 text-2xl font-bold tracking-tight">
-            Cart ({items.length} {items.length === 1 ? "item" : "items"})
-          </SheetTitle>
         </SheetHeader>
 
         {items.length === 0 ? (
@@ -94,29 +93,21 @@ export function CartDrawer() {
                 <p className="text-xs text-muted-foreground">
                   Shipping and taxes calculated at checkout.
                 </p>
-                <Button className="w-full rounded-full" size="lg" onClick={handleCheckoutClick}>
-                  Checkout
+                <Button
+                  className="w-full rounded-full cursor-pointer min-h-[46px]"
+                  size="lg"
+                  onClick={handleCheckoutClick}
+                >
+                  {isAuthenticated ? "Proceed to Checkout" : "Sign In to Checkout"}
                 </Button>
                 <button
-                  className="mb-4 w-full py-2 text-center text-sm text-muted-foreground underline hover:text-foreground sm:mb-0 sm:hidden"
+                  className="mb-4 w-full py-2 text-center text-sm text-muted-foreground underline hover:text-foreground sm:mb-0 sm:hidden cursor-pointer"
                   onClick={closeCart}
                 >
                   Continue Shopping
                 </button>
               </div>
             </SheetFooter>
-
-            <AuthRequiredDialog
-              open={authDialogOpen}
-              onOpenChange={setAuthDialogOpen}
-              redirectUrl="/checkout"
-              title="Sign In to Checkout"
-              description="Please sign in or create an account to proceed to checkout and place your order."
-              onSuccess={() => {
-                closeCart()
-                router.push("/checkout")
-              }}
-            />
           </>
         )}
       </SheetContent>

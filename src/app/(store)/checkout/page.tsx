@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useCartStore } from "@/store/cart"
 import { useOrdersStore } from "@/store/orders"
 import { useAuthStore } from "@/store/auth"
+import { useCouponStore } from "@/store/coupons"
 import { CartSummary } from "@/components/cart/cart-summary"
 import { AuthRequiredDialog } from "@/components/auth/auth-required-dialog"
 import { formatPrice } from "@/lib/utils"
@@ -29,6 +30,7 @@ export default function CheckoutPage() {
   const user = useAuthStore((s) => s.user)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const login = useAuthStore((s) => s.login)
+  const calculateDiscount = useCouponStore((s) => s.calculateDiscount)
 
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -135,17 +137,20 @@ export default function CheckoutPage() {
 
     setLoading(true)
 
-    // Create order using store settings & active currency
-    const shipping = subtotal >= siteConfig.freeShippingThreshold ? 0 : 599
-    const tax = Math.round(subtotal * siteConfig.taxRate)
-    const total = subtotal + shipping + tax
+    // Create order using store settings & active currency (with coupon discount applied)
+    const discount = calculateDiscount(subtotal)
+    const discountedSubtotal = Math.max(0, subtotal - discount)
+    const shipping = subtotal === 0 ? 0 : discountedSubtotal >= siteConfig.freeShippingThreshold ? 0 : 599
+    const tax = Math.round(discountedSubtotal * siteConfig.taxRate)
+    const total = discountedSubtotal + shipping + tax
     const orderId = `ORD-${Date.now().toString(36).toUpperCase()}`
 
     const order: Order = {
       id: orderId,
       orderNumber: orderId,
+      userId: user?.id,
       items: items.map((item) => ({
-        id: item.id,
+        id: item.id || `item-${Math.random().toString(36).substring(2, 9)}`,
         productId: item.productId,
         variantId: item.variantId,
         name: item.name,
@@ -176,8 +181,11 @@ export default function CheckoutPage() {
         country: form.country,
         isDefault: true,
       },
-      customerEmail: form.email,
-      customerName: `${form.firstName} ${form.lastName}`,
+      customerEmail: (form.email || user?.email || "").trim(),
+      customerName:
+        `${form.firstName} ${form.lastName}`.trim() ||
+        user?.firstName ||
+        "Customer",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -370,36 +378,35 @@ export default function CheckoutPage() {
         </div>
 
         {/* Order Summary */}
-        <div className="lg:col-span-2">
-          <Card className="sticky top-24 rounded-[20px]">
-            <CardHeader>
-              <CardTitle className="text-lg">Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <div className="lg:col-span-2 space-y-4 lg:sticky lg:top-24">
+          <div className="rounded-[20px] border border-black/10 bg-white p-5 text-left shadow-xs">
+            <h3 className="font-bold text-base text-black mb-3">Your Items ({items.length})</h3>
+            <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1 divide-y divide-black/5">
               {items.map((item) => (
-                <div key={item.variantId} className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
+                <div key={item.variantId} className="flex justify-between text-xs sm:text-sm pt-2 first:pt-0">
+                  <span className="text-black/70 truncate max-w-[180px]">
                     {item.name} &times; {item.quantity}
                   </span>
-                  <span>{formatPrice(item.lineTotal)}</span>
+                  <span className="font-semibold text-black tabular-nums">{formatPrice(item.lineTotal)}</span>
                 </div>
               ))}
-              <Separator />
-              <CartSummary subtotal={subtotal} showCheckoutButton={false} />
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full rounded-full min-h-[46px]"
-                disabled={loading}
-              >
-                {loading
-                  ? "Processing..."
-                  : isAuthenticated
-                  ? "Place Order"
-                  : "Sign In to Place Order"}
-              </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+
+          <CartSummary subtotal={subtotal} showCheckoutButton={false} />
+
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full rounded-full min-h-[48px] text-base font-bold cursor-pointer"
+            disabled={loading}
+          >
+            {loading
+              ? "Processing..."
+              : isAuthenticated
+              ? "Place Order"
+              : "Sign In to Place Order"}
+          </Button>
         </div>
       </form>
 
