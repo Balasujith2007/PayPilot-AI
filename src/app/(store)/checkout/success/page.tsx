@@ -24,7 +24,10 @@ function CheckoutSuccessContent() {
   const getOrderById = useOrdersStore((s) => s.getOrderById)
 
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => setMounted(true))
+    return () => window.cancelAnimationFrame(id)
+  }, [])
 
   if (!mounted) {
     return (

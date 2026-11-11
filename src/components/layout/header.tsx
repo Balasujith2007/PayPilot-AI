@@ -382,15 +382,15 @@ export function Header({ categories = [] }: HeaderProps) {
                   <DropdownMenuSeparator className="my-1 bg-black/5" />
                   <DropdownMenuItem
                     onClick={() => router.push("/account")}
-                    className="cursor-pointer rounded-xl px-3 py-2 hover:bg-[#F0EEED]"
+                    className="cursor-pointer rounded-xl px-3 py-2 hover:bg-[#F0EEED] font-medium"
                   >
-                    {tCommon("signIn")}
+                    Account
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => router.push("/account/orders")}
                     className="cursor-pointer rounded-xl px-3 py-2 hover:bg-[#F0EEED]"
                   >
-                    {tCommon("orders")}
+                    Orders
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => router.push("/account/settings")}

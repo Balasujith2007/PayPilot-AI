@@ -10,11 +10,14 @@ import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useCartStore } from "@/store/cart"
 import { useOrdersStore } from "@/store/orders"
+import { useAuthStore } from "@/store/auth"
 import { CartSummary } from "@/components/cart/cart-summary"
+import { AuthRequiredDialog } from "@/components/auth/auth-required-dialog"
 import { formatPrice } from "@/lib/utils"
 import { toast } from "sonner"
 import { siteConfig } from "@/lib/config"
 import type { Order } from "@/types"
+import { Lock, Zap, CheckCircle2 } from "lucide-react"
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -22,8 +25,14 @@ export default function CheckoutPage() {
   const getSubtotal = useCartStore((s) => s.getSubtotal)
   const clearCart = useCartStore((s) => s.clearCart)
   const addOrder = useOrdersStore((s) => s.addOrder)
+
+  const user = useAuthStore((s) => s.user)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const login = useAuthStore((s) => s.login)
+
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [authDialogOpen, setAuthDialogOpen] = useState(false)
 
   const [form, setForm] = useState({
     email: "",
@@ -37,7 +46,30 @@ export default function CheckoutPage() {
     country: "US",
   })
 
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => setMounted(true))
+    return () => window.cancelAnimationFrame(id)
+  }, [])
+
+  // Autofill user details when authenticated
+  useEffect(() => {
+    if (!user) return
+    const id = window.requestAnimationFrame(() => {
+      const defaultAddr = user.addresses?.find((a) => a.isDefault) || user.addresses?.[0]
+      setForm((prev) => ({
+        ...prev,
+        email: user.email || prev.email,
+        firstName: user.firstName || prev.firstName,
+        lastName: user.lastName || prev.lastName,
+        line1: defaultAddr?.line1 || prev.line1,
+        city: defaultAddr?.city || prev.city,
+        state: defaultAddr?.state || prev.state,
+        postalCode: defaultAddr?.postalCode || prev.postalCode,
+        country: defaultAddr?.country || prev.country,
+      }))
+    })
+    return () => window.cancelAnimationFrame(id)
+  }, [user])
 
   if (!mounted) {
     return (
@@ -69,17 +101,41 @@ export default function CheckoutPage() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
   }
 
+  function handleQuickLogin() {
+    const success = login("demo@example.com", "password123")
+    if (success) {
+      toast.success("Signed in as Demo Customer (Jane Smith)!")
+    } else {
+      toast.error("Failed to sign in with demo credentials")
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    if (!form.email || !form.firstName || !form.lastName || !form.line1 || !form.city || !form.state || !form.postalCode) {
-      toast.error("Please fill in all required fields")
+    // 🔒 Auth Gate: User MUST be signed in to place an order
+    if (!isAuthenticated) {
+      toast.error("Please sign in or create an account before placing your order.")
+      setAuthDialogOpen(true)
+      return
+    }
+
+    if (
+      !form.email ||
+      !form.firstName ||
+      !form.lastName ||
+      !form.line1 ||
+      !form.city ||
+      !form.state ||
+      !form.postalCode
+    ) {
+      toast.error("Please fill in all required shipping & contact fields")
       return
     }
 
     setLoading(true)
 
-    // Create order using demo checkout
+    // Create order using store settings & active currency
     const shipping = subtotal >= siteConfig.freeShippingThreshold ? 0 : 599
     const tax = Math.round(subtotal * siteConfig.taxRate)
     const total = subtotal + shipping + tax
@@ -106,9 +162,9 @@ export default function CheckoutPage() {
       tax,
       shipping,
       total,
-      currency: "USD",
+      currency: siteConfig.currency,
       shippingAddress: {
-        id: "addr-1",
+        id: `addr-${Date.now()}`,
         type: "shipping",
         firstName: form.firstName,
         lastName: form.lastName,
@@ -136,11 +192,68 @@ export default function CheckoutPage() {
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
 
+      {/* Authentication Status Alert Banner */}
+      {!isAuthenticated ? (
+        <div className="mt-6 rounded-[20px] border border-amber-300 bg-amber-50/70 p-4 sm:p-5 text-amber-900 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-200 text-amber-900 mt-0.5 sm:mt-0">
+                <Lock className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-black">
+                  Sign In Required to Place Order
+                </h3>
+                <p className="text-xs text-black/70 mt-0.5">
+                  You need to be signed in to complete your checkout and track your order.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto pl-12 sm:pl-0">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleQuickLogin}
+                className="rounded-full bg-white text-xs font-semibold hover:bg-black hover:text-white border-amber-300 gap-1.5"
+              >
+                <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                <span>1-Click Demo Login</span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                asChild
+                className="rounded-full text-xs font-semibold"
+              >
+                <Link href="/auth/login?redirect=/checkout">Sign In</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-6 rounded-[20px] border border-emerald-300 bg-emerald-50/70 p-3.5 sm:p-4 text-emerald-900 shadow-2xs flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+            <p className="text-xs sm:text-sm font-medium text-emerald-950">
+              Signed in as <span className="font-bold">{user?.firstName} {user?.lastName}</span> ({user?.email})
+            </p>
+          </div>
+          <Link
+            href="/auth/login?redirect=/checkout"
+            className="text-xs font-semibold text-emerald-800 underline hover:text-emerald-950"
+          >
+            Switch account
+          </Link>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="mt-8 grid gap-8 lg:grid-cols-5">
         {/* Form */}
         <div className="space-y-8 lg:col-span-3">
           {/* Contact */}
-          <Card>
+          <Card className="rounded-[20px]">
             <CardHeader>
               <CardTitle className="text-lg">Contact Information</CardTitle>
             </CardHeader>
@@ -161,7 +274,7 @@ export default function CheckoutPage() {
           </Card>
 
           {/* Shipping */}
-          <Card>
+          <Card className="rounded-[20px]">
             <CardHeader>
               <CardTitle className="text-lg">Shipping Address</CardTitle>
             </CardHeader>
@@ -169,40 +282,81 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First name</Label>
-                  <Input id="firstName" name="firstName" value={form.firstName} onChange={handleChange} required />
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    value={form.firstName}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last name</Label>
-                  <Input id="lastName" name="lastName" value={form.lastName} onChange={handleChange} required />
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    value={form.lastName}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="line1">Address</Label>
-                <Input id="line1" name="line1" value={form.line1} onChange={handleChange} required />
+                <Input
+                  id="line1"
+                  name="line1"
+                  value={form.line1}
+                  onChange={handleChange}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="line2">Apartment, suite, etc. (optional)</Label>
-                <Input id="line2" name="line2" value={form.line2} onChange={handleChange} />
+                <Input
+                  id="line2"
+                  name="line2"
+                  value={form.line2}
+                  onChange={handleChange}
+                />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="city">City</Label>
-                  <Input id="city" name="city" value={form.city} onChange={handleChange} required />
+                  <Input
+                    id="city"
+                    name="city"
+                    value={form.city}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="state">State</Label>
-                  <Input id="state" name="state" value={form.state} onChange={handleChange} required />
+                  <Input
+                    id="state"
+                    name="state"
+                    value={form.state}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="postalCode">ZIP code</Label>
-                  <Input id="postalCode" name="postalCode" value={form.postalCode} onChange={handleChange} required />
+                  <Input
+                    id="postalCode"
+                    name="postalCode"
+                    value={form.postalCode}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Payment note */}
-          <Card>
+          <Card className="rounded-[20px]">
             <CardHeader>
               <CardTitle className="text-lg">Payment</CardTitle>
             </CardHeader>
@@ -217,7 +371,7 @@ export default function CheckoutPage() {
 
         {/* Order Summary */}
         <div className="lg:col-span-2">
-          <Card className="sticky top-24">
+          <Card className="sticky top-24 rounded-[20px]">
             <CardHeader>
               <CardTitle className="text-lg">Order Summary</CardTitle>
             </CardHeader>
@@ -231,14 +385,31 @@ export default function CheckoutPage() {
                 </div>
               ))}
               <Separator />
-              <CartSummary subtotal={subtotal} />
-              <Button type="submit" size="lg" className="w-full" disabled={loading}>
-                {loading ? "Processing..." : "Place Order"}
+              <CartSummary subtotal={subtotal} showCheckoutButton={false} />
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full rounded-full min-h-[46px]"
+                disabled={loading}
+              >
+                {loading
+                  ? "Processing..."
+                  : isAuthenticated
+                  ? "Place Order"
+                  : "Sign In to Place Order"}
               </Button>
             </CardContent>
           </Card>
         </div>
       </form>
+
+      <AuthRequiredDialog
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+        redirectUrl="/checkout"
+        title="Sign In to Place Order"
+        description="Please sign in or create an account to finalize and place your order."
+      />
     </div>
   )
 }

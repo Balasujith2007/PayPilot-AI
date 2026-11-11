@@ -1,6 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ShoppingBag, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,19 +12,33 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@/components/ui/sheet"
-import { Separator } from "@/components/ui/separator"
 import { CartItem } from "./cart-item"
-import { CartSummary } from "./cart-summary"
 import { useCartStore } from "@/store/cart"
+import { useAuthStore } from "@/store/auth"
+import { AuthRequiredDialog } from "@/components/auth/auth-required-dialog"
 import { formatPrice } from "@/lib/utils"
 
 export function CartDrawer() {
+  const router = useRouter()
   const items = useCartStore((s) => s.items)
   const isOpen = useCartStore((s) => s.isOpen)
   const closeCart = useCartStore((s) => s.closeCart)
   const getSubtotal = useCartStore((s) => s.getSubtotal)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+
+  const [authDialogOpen, setAuthDialogOpen] = useState(false)
 
   const subtotal = getSubtotal()
+
+  const handleCheckoutClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (!isAuthenticated) {
+      setAuthDialogOpen(true)
+    } else {
+      closeCart()
+      router.push("/checkout")
+    }
+  }
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeCart()}>
@@ -78,8 +94,8 @@ export function CartDrawer() {
                 <p className="text-xs text-muted-foreground">
                   Shipping and taxes calculated at checkout.
                 </p>
-                <Button className="w-full" size="lg" asChild onClick={closeCart}>
-                  <Link href="/checkout">Checkout</Link>
+                <Button className="w-full rounded-full" size="lg" onClick={handleCheckoutClick}>
+                  Checkout
                 </Button>
                 <button
                   className="mb-4 w-full py-2 text-center text-sm text-muted-foreground underline hover:text-foreground sm:mb-0 sm:hidden"
@@ -89,6 +105,18 @@ export function CartDrawer() {
                 </button>
               </div>
             </SheetFooter>
+
+            <AuthRequiredDialog
+              open={authDialogOpen}
+              onOpenChange={setAuthDialogOpen}
+              redirectUrl="/checkout"
+              title="Sign In to Checkout"
+              description="Please sign in or create an account to proceed to checkout and place your order."
+              onSuccess={() => {
+                closeCart()
+                router.push("/checkout")
+              }}
+            />
           </>
         )}
       </SheetContent>
