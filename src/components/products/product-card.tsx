@@ -6,6 +6,7 @@ import Image from "next/image"
 import { Heart } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { StarRating } from "@/components/products/star-rating"
+import { CompareToggleButton } from "@/components/compare/compare-toggle-button"
 import { formatPrice } from "@/lib/utils"
 import { PLACEHOLDER_IMAGE } from "@/lib/constants"
 import { useWishlistStore } from "@/store/wishlist"
@@ -78,6 +79,7 @@ export function ProductCard({ product }: ProductCardProps) {
             className={`h-4 w-4 ${isWishlisted ? "fill-current text-wishlist" : "text-neutral-600"}`}
           />
         </button>
+        <CompareToggleButton product={product} className="absolute top-14 right-2 z-10" />
       </div>
       <div className="mt-3">
         <StarRating rating={product.rating} reviewCount={product.reviewCount} size="sm" />

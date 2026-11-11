@@ -10,6 +10,7 @@ import { useRecentlyViewedStore } from "@/store/recently-viewed"
 import { RecentlyViewed } from "@/components/products/recently-viewed"
 import { StarRating } from "@/components/products/star-rating"
 import { TrustSignals } from "@/components/products/trust-signals"
+import { CompareToggleButton } from "@/components/compare/compare-toggle-button"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
@@ -252,6 +253,7 @@ export function ProductDetailView({
               >
                 <Heart className={`h-4 w-4 ${isWishlisted ? "fill-wishlist text-wishlist" : ""}`} />
               </Button>
+              <CompareToggleButton product={product} variant="button" />
             </div>
             <Button
               size="lg"

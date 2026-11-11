@@ -3,6 +3,7 @@ import { Footer } from "@/components/layout/footer"
 import { AnnouncementBar } from "@/components/layout/announcement-bar"
 import { CartDrawer } from "@/components/cart/cart-drawer"
 import { BackToTop } from "@/components/layout/back-to-top"
+import { CompareTray } from "@/components/compare/compare-tray"
 import { categoryRepository } from "@/lib/repositories"
 
 export default async function StoreLayout({
@@ -29,6 +30,7 @@ export default async function StoreLayout({
       </main>
       <Footer />
       <CartDrawer />
+      <CompareTray />
       <BackToTop />
     </>
   )
