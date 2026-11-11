@@ -71,3 +71,24 @@ export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
 export type CheckoutFormData = z.infer<typeof checkoutFormSchema>
 export type ContactFormData = z.infer<typeof contactFormSchema>
 export type NewsletterFormData = z.infer<typeof newsletterSchema>
+
+// --- Product comparison ---
+
+export const productIdSchema = z
+  .string()
+  .trim()
+  .min(1, "Product ID is required")
+  .max(64, "Product ID is too long")
+  .regex(/^[A-Za-z0-9_-]+$/, "Product ID contains invalid characters")
+
+export const compareProductsSchema = z.object({
+  productIds: z
+    .array(productIdSchema)
+    .min(2, "Select at least 2 products to compare")
+    .max(4, "You can compare up to 4 products")
+    .refine((ids) => new Set(ids).size === ids.length, {
+      message: "Product IDs must be unique",
+    }),
+})
+
+export type CompareProductsRequest = z.infer<typeof compareProductsSchema>

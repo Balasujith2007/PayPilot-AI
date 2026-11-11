@@ -22,6 +22,7 @@ export const shopLinks: NavItem[] = [
 export const accountLinks: NavItem[] = [
   { name: "My Account", href: "/account" },
   { name: "Wishlist", href: "/wishlist" },
+  { name: "Compare Products", href: "/compare" },
   { name: "Orders", href: "/account/orders" },
 ]
 
