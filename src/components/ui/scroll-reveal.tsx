@@ -38,3 +38,5 @@ export function ScrollReveal({
   )
 }
 
+export const Reveal = ScrollReveal
+

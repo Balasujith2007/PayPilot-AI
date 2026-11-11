@@ -229,5 +229,37 @@
     "manageOrders": "Manage and track customer orders.",
     "manageCustomers": "View and manage your customer base.",
     "noCustomers": "No customers yet. Customer data will populate as users create accounts."
+  },
+  "assistant": {
+    "pageTitle": "AI Shopping Assistant",
+    "metaDescription": "Ask PayPilot AI anything about products, prices, and recommendations. Your personal shopping concierge.",
+    "breadcrumbHome": "Home",
+    "breadcrumbAssistant": "AI Assistant",
+    "headerTitle": "PayPilot AI",
+    "headerSubtitle": "Your personal shopping assistant",
+    "clearConversation": "Clear conversation",
+    "compare": "Compare",
+    "welcomeHeading": "ASK PAYPILOT AI ANYTHING",
+    "welcomeDescription": "Ask about product specs, budgets, gift ideas, or comparisons across our curated catalog.",
+    "prompts": {
+      "laptop": "Best laptop under ₹80,000",
+      "phones": "Phones under ₹30,000 with a good camera",
+      "gifts": "Gift ideas under ₹2,000",
+      "earbuds": "Wireless earbuds for running",
+      "compare": "Compare two budget smartwatches",
+      "accessories": "Accessories for my new laptop"
+    },
+    "inputPlaceholder": "Ask about products, budgets, comparisons...",
+    "inputAriaLabel": "Ask PayPilot AI a question",
+    "sendAriaLabel": "Send message",
+    "chatComingSoon": "Chat coming soon",
+    "characterCount": "0/500",
+    "recommendationsHeading": "RECOMMENDATIONS",
+    "recommendationsSubtitle": "Products picked by PayPilot AI will appear here.",
+    "noRecommendations": "No recommendations yet",
+    "noRecommendationsDesc": "Ask PayPilot AI about products, budgets, or styles to see personalized recommendations here.",
+    "chatRegionAria": "AI Shopping Assistant Chat",
+    "recommendationsRegionAria": "Product Recommendations",
+    "suggestedPromptsAria": "Suggested prompts"
   }
 }

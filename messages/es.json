@@ -229,5 +229,37 @@
     "manageOrders": "Administrar y rastrear pedidos de clientes.",
     "manageCustomers": "Ver y administrar tu base de clientes.",
     "noCustomers": "Aún no hay clientes. Los datos de clientes se llenarán cuando los usuarios creen cuentas."
+  },
+  "assistant": {
+    "pageTitle": "Asistente de Compras con IA",
+    "metaDescription": "Pregunta a PayPilot AI cualquier duda sobre productos, precios y recomendaciones. Tu asistente de compras personal.",
+    "breadcrumbHome": "Inicio",
+    "breadcrumbAssistant": "Asistente de IA",
+    "headerTitle": "PayPilot AI",
+    "headerSubtitle": "Tu asistente de compras personal",
+    "clearConversation": "Borrar conversación",
+    "compare": "Comparar",
+    "welcomeHeading": "PREGUNTA A PAYPILOT AI LO QUE QUIERAS",
+    "welcomeDescription": "Pregunta sobre especificaciones, presupuestos, regalos o comparaciones en nuestro catálogo.",
+    "prompts": {
+      "laptop": "Mejor portátil por menos de ₹80,000",
+      "phones": "Móviles por menos de ₹30,000 con buena cámara",
+      "gifts": "Ideas de regalo por menos de ₹2,000",
+      "earbuds": "Auriculares inalámbricos para correr",
+      "compare": "Comparar dos relojes inteligentes económicos",
+      "accessories": "Accesorios para mi nuevo portátil"
+    },
+    "inputPlaceholder": "Pregunta sobre productos, presupuestos, comparaciones...",
+    "inputAriaLabel": "Hacer una pregunta a PayPilot AI",
+    "sendAriaLabel": "Enviar mensaje",
+    "chatComingSoon": "Chat disponible próximamente",
+    "characterCount": "0/500",
+    "recommendationsHeading": "RECOMENDACIONES",
+    "recommendationsSubtitle": "Los productos seleccionados por PayPilot AI aparecerán aquí.",
+    "noRecommendations": "Aún no hay recomendaciones",
+    "noRecommendationsDesc": "Pregunta a PayPilot AI sobre productos, presupuestos o estilos para ver recomendaciones personalizadas aquí.",
+    "chatRegionAria": "Chat del Asistente de Compras con IA",
+    "recommendationsRegionAria": "Recomendaciones de productos",
+    "suggestedPromptsAria": "Sugerencias de preguntas"
   }
 }
