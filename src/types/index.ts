@@ -264,6 +264,210 @@ export interface ApiError {
   details?: Record<string, string[]>
 }
 
+// --- AI Agent ---
+
+/** Summary of a tool the agent invoked while answering. Args are not echoed. */
+export interface AgentToolCallSummary {
+  name: string
+  ok: boolean
+}
+
+/**
+ * Compact catalog product. Always rebuilt server-side from the product
+ * repository — no value here is ever taken from the model or the client.
+ */
+export type AgentProductSummary = {
+  id: string
+  name: string
+  slug: string
+  url: string
+  description: string
+  /** Primary catalog image URL, or null when the product has none. */
+  image: string | null
+  /** Unit price in cents */
+  price: number
+  priceFormatted: string
+  compareAtPrice?: number
+  currency: string
+  rating: number
+  reviewCount: number
+  brand: string | null
+  categories: string[]
+  tags: string[]
+  inStock: boolean
+}
+
+/** Result of the `search_products` tool. */
+export type AgentSearchResult = {
+  query: string
+  category: string | null
+  categoryMatched: boolean
+  resultCount: number
+  totalMatches: number
+  products: AgentProductSummary[]
+  note?: string
+}
+
+export type AgentComparisonProduct = AgentProductSummary & {
+  variantCount: number
+  availableVariantCount: number
+  variantNames: string[]
+  compareAtPriceFormatted?: string
+}
+
+/** One compared attribute, keyed by product id. */
+export type AgentComparisonRow = {
+  attribute: string
+  /** True when every compared product shares the same value. */
+  same: boolean
+  values: Record<string, string>
+}
+
+/** Result of the `compare_products` tool. */
+export type AgentComparisonResult = {
+  currency: string
+  comparedCount: number
+  notFound: string[]
+  products: AgentComparisonProduct[]
+  rows: AgentComparisonRow[]
+  highlights: {
+    cheapest: { id: string; name: string; price: number }
+    highestRated: { id: string; name: string; rating: number }
+  }
+}
+
+export type AgentBudgetProduct = AgentProductSummary & {
+  remainingBudget: number
+  remainingBudgetFormatted: string
+  estimatedShipping: number
+  estimatedTax: number
+  estimatedTotal: number
+  estimatedTotalFormatted: string
+  qualifiesForFreeShipping: boolean
+}
+
+export type AgentBudgetPick = {
+  id: string
+  name: string
+  price: number
+  priceFormatted: string
+  rating: number
+}
+
+/** Result of the `check_budget` tool. */
+export type AgentBudgetResult = {
+  budget: number
+  budgetFormatted?: string
+  currency?: string
+  category: string | null
+  categoryMatched?: boolean
+  requirements?: string | null
+  thresholds?: {
+    freeShipping: number
+    freeShippingFormatted: string
+    taxRate: number
+  }
+  eligibleCount: number
+  totalEligible?: number
+  eligible: AgentBudgetProduct[]
+  recommendations: {
+    topPicks: AgentBudgetPick[]
+    cheapest: { id: string; name: string; price: number } | null
+    highestRated: { id: string; name: string; rating: number } | null
+    nextStepUp: {
+      id: string
+      name: string
+      price: number
+      additionalNeeded: number
+    } | null
+  }
+  note?: string
+}
+
+/** One line of a cart proposal. Every value is server-catalog derived. */
+export type CartProposalLine = {
+  productId: string
+  variantId: string
+  name: string
+  variantName: string
+  sku: string
+  slug: string
+  url: string
+  image: string | null
+  /** Unit price in cents, read from the catalog */
+  unitPrice: number
+  unitPriceFormatted: string
+  quantity: number
+  lineTotal: number
+  lineTotalFormatted: string
+  currency: string
+  availableQuantity: number
+}
+
+export type CartProposalRejectionCode =
+  | "NOT_FOUND"
+  | "VARIANT_NOT_FOUND"
+  | "OUT_OF_STOCK"
+  | "INSUFFICIENT_STOCK"
+
+/** A requested line the server refused, with a shopper-readable reason. */
+export type CartProposalRejection = {
+  productId: string
+  variantId: string | null
+  quantity: number
+  code: CartProposalRejectionCode
+  message: string
+}
+
+export type CartProposalSummary = {
+  itemCount: number
+  subtotal: number
+  subtotalFormatted: string
+  shipping: number
+  shippingFormatted: string
+  tax: number
+  taxFormatted: string
+  total: number
+  totalFormatted: string
+  freeShippingThreshold: number
+  qualifiesForFreeShipping: boolean
+}
+
+/**
+ * A cart proposal awaiting explicit shopper approval.
+ *
+ * `applied` and `paymentInitiated` are always `false`: nothing in this payload
+ * can change the cart, start checkout or take a payment.
+ */
+export type CartProposal = {
+  action: "add_to_cart"
+  status: "proposed"
+  applied: false
+  requiresApproval: true
+  paymentInitiated: false
+  currency: string
+  items: CartProposalLine[]
+  rejected: CartProposalRejection[]
+  summary: CartProposalSummary
+  note?: string
+}
+
+/** Structured, server-derived output the chat UI can render for this turn. */
+export type AgentChatArtifacts = {
+  search?: AgentSearchResult
+  comparison?: AgentComparisonResult
+  budget?: AgentBudgetResult
+  cartProposal?: CartProposal
+}
+
+export interface AgentChatResult {
+  reply: string
+  model: string
+  toolCalls: AgentToolCallSummary[]
+  /** Rebuilt server-side from tool results — never from model text. */
+  artifacts: AgentChatArtifacts
+}
+
 // --- Pagination ---
 
 export interface PaginationParams {

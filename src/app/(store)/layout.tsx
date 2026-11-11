@@ -4,6 +4,7 @@ import { AnnouncementBar } from "@/components/layout/announcement-bar"
 import { CartDrawer } from "@/components/cart/cart-drawer"
 import { BackToTop } from "@/components/layout/back-to-top"
 import { CompareTray } from "@/components/compare/compare-tray"
+import { ShoppingAssistant } from "@/components/ai/shopping-assistant"
 import { categoryRepository } from "@/lib/repositories"
 
 export default async function StoreLayout({
@@ -32,6 +33,7 @@ export default async function StoreLayout({
       <CartDrawer />
       <CompareTray />
       <BackToTop />
+      <ShoppingAssistant />
     </>
   )
 }

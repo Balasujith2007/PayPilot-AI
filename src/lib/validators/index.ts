@@ -1,4 +1,12 @@
 import { z } from "zod"
+import { MAX_COMPARE_PRODUCTS, MIN_COMPARE_PRODUCTS } from "@/lib/comparison"
+
+/**
+ * Upper bound on a budget request, in cents. Shared by the budget API
+ * (`budgetRequestSchema`) and the agent `check_budget` tool arguments so both
+ * layers enforce the same ceiling.
+ */
+export const MAX_BUDGET_CENTS = 100_000_000
 
 // --- Address ---
 
@@ -62,6 +70,82 @@ export const newsletterSchema = z.object({
   email: z.string().email("Invalid email address"),
 })
 
+// --- AI Agent ---
+
+export const AGENT_MAX_MESSAGES = 20
+export const AGENT_MAX_MESSAGE_LENGTH = 2000
+
+export const agentChatMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z
+    .string()
+    .trim()
+    .min(1, "Message cannot be empty")
+    .max(
+      AGENT_MAX_MESSAGE_LENGTH,
+      `Message must be at most ${AGENT_MAX_MESSAGE_LENGTH} characters`
+    ),
+})
+
+export const agentChatRequestSchema = z.object({
+  messages: z
+    .array(agentChatMessageSchema)
+    .min(1, "At least one message is required")
+    .max(AGENT_MAX_MESSAGES, `At most ${AGENT_MAX_MESSAGES} messages are allowed`),
+})
+
+// --- AI Agent Tool Arguments ---
+//
+// These schemas are the authoritative validation for anything Gemini sends
+// back as tool arguments. The model's request is untrusted input, so every
+// field is bounded and coerced before a tool implementation sees it.
+
+export const AGENT_TOOL_MAX_RESULTS = 10
+export const AGENT_TOOL_MAX_CART_LINES = 10
+export const AGENT_TOOL_MAX_QUANTITY = 10
+
+/** A short identifier or keyword. */
+const toolText = (max: number) => z.string().trim().min(1).max(max)
+
+/**
+ * Gemini occasionally serialises integers as numeric strings, so integer
+ * arguments are coerced — but still range-checked against the same bounds.
+ */
+const toolCount = (min: number, max: number) =>
+  z.coerce.number().int().min(min).max(max)
+
+export const searchProductsArgsSchema = z.object({
+  query: toolText(120),
+  category: toolText(60).optional(),
+  limit: toolCount(1, AGENT_TOOL_MAX_RESULTS).optional(),
+})
+
+export const compareProductsArgsSchema = z.object({
+  productIds: z
+    .array(toolText(64))
+    .min(MIN_COMPARE_PRODUCTS)
+    .max(MAX_COMPARE_PRODUCTS),
+})
+
+export const checkBudgetArgsSchema = z.object({
+  budget: z.coerce.number().int().min(1).max(MAX_BUDGET_CENTS),
+  category: toolText(60).optional(),
+  requirements: toolText(120).optional(),
+})
+
+export const cartActionLineSchema = z.object({
+  productId: toolText(64),
+  variantId: toolText(64).optional(),
+  quantity: toolCount(1, AGENT_TOOL_MAX_QUANTITY),
+})
+
+export const proposeCartActionArgsSchema = z.object({
+  items: z
+    .array(cartActionLineSchema)
+    .min(1)
+    .max(AGENT_TOOL_MAX_CART_LINES),
+})
+
 // --- Type exports ---
 
 export type AddressFormData = z.infer<typeof addressSchema>
@@ -108,7 +192,7 @@ export const budgetRequestSchema = z.object({
     .number({ error: "Budget must be a number (in cents)" })
     .int("Budget must be a whole number of cents")
     .positive("Budget must be greater than 0")
-    .max(100_000_000, "Budget is too large"),
+    .max(MAX_BUDGET_CENTS, "Budget is too large"),
   currency: z
     .string()
     .trim()
@@ -128,3 +212,13 @@ export const budgetRequestSchema = z.object({
 })
 
 export type BudgetRequestInput = z.infer<typeof budgetRequestSchema>
+
+// --- Agent chat + tool argument types ---
+
+export type AgentChatMessage = z.infer<typeof agentChatMessageSchema>
+export type AgentChatRequest = z.infer<typeof agentChatRequestSchema>
+export type SearchProductsArgs = z.infer<typeof searchProductsArgsSchema>
+export type CompareProductsArgs = z.infer<typeof compareProductsArgsSchema>
+export type CheckBudgetArgs = z.infer<typeof checkBudgetArgsSchema>
+export type CartActionLine = z.infer<typeof cartActionLineSchema>
+export type ProposeCartActionArgs = z.infer<typeof proposeCartActionArgsSchema>
