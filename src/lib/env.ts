@@ -45,6 +45,13 @@ const envSchema = z.object({
   PAYPAL_CLIENT_SECRET: optionalString(),
   PAYPAL_API_BASE_URL: optionalString(),
 
+  // Neon PostgreSQL (server-side only). Required for database operations.
+  //   DATABASE_URL          → Pooled connection string for runtime queries
+  //   DIRECT_URL            → Direct connection string for migrations
+  // Optional so the app boots without database configured for development.
+  DATABASE_URL: optionalString(),
+  DIRECT_URL: optionalString(),
+
   // Uncomment when integrating a payment provider:
   // STRIPE_SECRET_KEY: z.string().startsWith("sk_"),
   // NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().startsWith("pk_"),
