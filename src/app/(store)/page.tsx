@@ -1,10 +1,6 @@
 import type { Metadata } from "next"
-import Link from "next/link"
-import { ArrowRight } from "lucide-react"
 import { siteConfig } from "@/lib/config"
 import { productRepository, categoryRepository, brandRepository } from "@/lib/repositories"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { HeroSection } from "@/components/hero/hero-section"
 import { BrandStrip } from "@/components/home/brand-strip"
 import { ProductShelfSection } from "@/components/home/product-shelf-section"
@@ -12,7 +8,6 @@ import { CategoriesSection } from "@/components/home/categories-section"
 import { CustomerReviewsSection } from "@/components/home/customer-reviews-section"
 import { WhyUsSection } from "@/components/home/why-us-section"
 import { ScrollProgressBar } from "@/components/layout/scroll-progress-bar"
-import { formatPrice } from "@/lib/utils"
 
 export const metadata: Metadata = {
   title: "PayPilot AI — Shop Smarter with Your Personal AI Assistant",

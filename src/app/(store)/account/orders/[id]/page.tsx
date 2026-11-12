@@ -38,9 +38,9 @@ export default function OrderDetailsPage({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // loadOrder is kept as a ref-stable callback for the retry button
   const loadOrder = useCallback(async () => {
     if (!user || !id) return
-    setLoading(true)
     setError(null)
 
     try {
@@ -85,7 +85,8 @@ export default function OrderDetailsPage({
 
   useEffect(() => {
     if (isReady && user) {
-      void loadOrder()
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- async fetch sets state after await
+      loadOrder().catch(() => {})
     }
   }, [isReady, user, loadOrder])
 
@@ -123,7 +124,14 @@ export default function OrderDetailsPage({
             {error ?? "We could not find the requested order."}
           </p>
           <div className="mt-6 flex justify-center gap-4">
-            <Button variant="outline" size="sm" onClick={() => void loadOrder()}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setLoading(true)
+                void loadOrder()
+              }}
+            >
               <RefreshCw className="mr-2 h-3.5 w-3.5" />
               Try again
             </Button>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { resolveCustomerIdentity } from "@/lib/orders/identity"
 import { orderRepository } from "@/lib/repositories"
 import { orderListQuerySchema } from "@/lib/validators"
 import type { ApiError as ApiErrorBody, ApiResponse, Order, PaginatedResult } from "@/types"
@@ -15,37 +16,6 @@ function errorResponse(
 ) {
   const body: ApiResponse<never> = { error: { code, message, details } as ApiErrorBody }
   return NextResponse.json(body, { status })
-}
-
-export function resolveCustomerIdentity(request: Request): {
-  userId?: string
-  email?: string
-} | null {
-  const headers = request.headers
-  const headerUserId = headers.get("x-user-id")?.trim() || null
-  const headerEmail = headers.get("x-user-email")?.trim().toLowerCase() || null
-
-  const authHeader = headers.get("authorization")?.trim() || null
-  let bearerUserId: string | null = null
-  if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
-    bearerUserId = authHeader.slice(7).trim() || null
-  }
-
-  const url = new URL(request.url)
-  const queryUserId = url.searchParams.get("userId")?.trim() || null
-  const queryEmail = url.searchParams.get("email")?.trim().toLowerCase() || null
-
-  const resolvedUserId = headerUserId || bearerUserId || queryUserId
-  const resolvedEmail = headerEmail || queryEmail
-
-  if (!resolvedUserId && !resolvedEmail) {
-    return null
-  }
-
-  return {
-    userId: resolvedUserId ?? undefined,
-    email: resolvedEmail ?? undefined,
-  }
 }
 
 /**

@@ -27,7 +27,6 @@ export default function CheckoutSuccessPage() {
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get("order_id")
-  const getOrderById = useOrdersStore((s) => s.getOrderById)
   const mounted = useHydrated()
 
   if (!mounted) {

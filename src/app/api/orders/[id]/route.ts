@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import { orderRepository } from "@/lib/repositories"
 import { orderIdParamSchema } from "@/lib/validators"
 import type { ApiError as ApiErrorBody, ApiResponse, Order } from "@/types"
-import { resolveCustomerIdentity } from "../route"
+import { resolveCustomerIdentity } from "@/lib/orders/identity"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"

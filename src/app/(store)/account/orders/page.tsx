@@ -28,7 +28,6 @@ import type { ApiResponse, Order, PaginatedResult } from "@/types"
 
 export default function OrdersPage() {
   const { user, isReady } = useAuthGuard()
-  const localOrders = useOrdersStore((s) => s.orders) || []
   const [filter, setFilter] = useState<"all" | "my">("all")
 
   const [orders, setOrders] = useState<Order[]>([])
@@ -36,12 +35,11 @@ export default function OrdersPage() {
   const [error, setError] = useState<string | null>(null)
 
   const fetchOrders = useCallback(async () => {
+    const storeOrders = useOrdersStore.getState().orders || []
     if (!user) {
-      setOrders(localOrders)
-      setLoading(false)
+      setOrders(storeOrders)
       return
     }
-    setLoading(true)
     setError(null)
 
     try {
@@ -67,7 +65,7 @@ export default function OrdersPage() {
       for (const order of serverOrders) {
         mergedMap.set(order.id, order)
       }
-      for (const order of localOrders) {
+      for (const order of storeOrders) {
         if (!mergedMap.has(order.id)) {
           mergedMap.set(order.id, order)
         }
@@ -81,21 +79,22 @@ export default function OrdersPage() {
     } catch (err) {
       console.error("Failed to load server orders:", err)
       // Fallback to local orders
-      const combined = [...localOrders].sort(
+      const combined = [...storeOrders].sort(
         (a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0)
       )
       setOrders(combined)
-      if (localOrders.length === 0) {
+      if (storeOrders.length === 0) {
         setError(err instanceof Error ? err.message : "Failed to load order history.")
       }
     } finally {
       setLoading(false)
     }
-  }, [user, localOrders])
+  }, [user])
 
   useEffect(() => {
     if (isReady) {
-      void fetchOrders()
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- async fetch sets state after await
+      fetchOrders().catch(() => {})
     }
   }, [isReady, fetchOrders])
 
