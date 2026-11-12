@@ -1,0 +1,52 @@
+[
+  {
+    "id": "chk_3f5a480b-c4db-467e-b2ae-cfa4fd4759ad",
+    "orderNumber": "PP-MWD0E21Y-4759AD",
+    "items": [
+      {
+        "id": "var-1-1",
+        "productId": "prod-1",
+        "variantId": "var-1-1",
+        "name": "Wireless Over-Ear Headphones",
+        "variantName": "Black",
+        "sku": "WH-BLK-001",
+        "image": {
+          "url": "/images/products/placeholder.svg",
+          "alt": "Wireless headphones front view",
+          "width": 800,
+          "height": 800
+        },
+        "price": 7999,
+        "quantity": 2,
+        "total": 15998
+      }
+    ],
+    "status": "processing",
+    "paymentStatus": "captured",
+    "subtotal": 15998,
+    "tax": 1280,
+    "shipping": 0,
+    "total": 17278,
+    "currency": "USD",
+    "shippingAddress": {
+      "id": "paypal-shipping",
+      "type": "shipping",
+      "firstName": "",
+      "lastName": "",
+      "line1": "",
+      "city": "",
+      "state": "",
+      "postalCode": "",
+      "country": "",
+      "isDefault": false
+    },
+    "customerEmail": "",
+    "customerName": "",
+    "createdAt": "2026-11-12T03:49:20.998Z",
+    "updatedAt": "2026-11-12T03:49:20.998Z",
+    "paymentMethod": "paypal",
+    "paymentReference": "3C679366HH908993F",
+    "paypalOrderId": "5O190127TN364715T",
+    "completedAt": "2026-11-12T03:49:20.998Z"
+  }
+]

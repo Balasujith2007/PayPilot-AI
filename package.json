@@ -24,11 +24,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:seed": "node --experimental-strip-types prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "node --experimental-strip-types prisma/seed.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
     "@google/genai": "^3.1.0",
+    "@prisma/adapter-neon": "^7.10.1",
+    "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "@radix-ui/react-slot": "^1.2.4",
     "class-variance-authority": "^0.7.1",
@@ -36,6 +42,7 @@
     "lucide-react": "^1.8.0",
     "next": "16.2.3",
     "next-intl": "^4.9.1",
+    "pg": "^8.23.1",
     "prisma": "^7.10.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
