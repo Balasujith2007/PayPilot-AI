@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import Link from "next/link"
 import { Check, Loader2, RefreshCw, Send, Sparkles, TriangleAlert, X } from "lucide-react"
 import { toast } from "sonner"
 
@@ -8,11 +9,24 @@ import { CartProposalCard, type CartProposalState } from "@/components/ai/cart-p
 import { BudgetResults, ComparisonResults, SearchResults } from "@/components/ai/tool-artifacts"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { proposalDiffersFrom, toCartItemInput } from "@/lib/ai/cart-approval"
-import { cn } from "@/lib/utils"
+import { toCartItemInput } from "@/lib/ai/cart-approval"
+import { siteConfig } from "@/lib/config"
+import { cn, formatPrice } from "@/lib/utils"
 import { AGENT_MAX_MESSAGES, AGENT_MAX_MESSAGE_LENGTH } from "@/lib/validators"
 import { useCartStore } from "@/store/cart"
-import type { AgentChatArtifacts, AgentToolCallSummary, CartProposal } from "@/types"
+import type {
+  AgentChatArtifacts,
+  AgentToolCallSummary,
+  CartApprovalDecision,
+  CartProposal,
+} from "@/types"
+
+/** Opening prompts, each answerable with the catalog this store actually has. */
+const SUGGESTIONS = [
+  "Find wireless headphones under $150",
+  "Compare the Bluetooth speaker and the headphones",
+  "What can I get for $60?",
+]
 
 /** In-session conversation. History lives in this component only — nothing is persisted. */
 interface UserTurn {
@@ -51,10 +65,28 @@ function nextTurnId(): string {
   return `turn-${turnSequence}`
 }
 
-function messageForStatus(status: number, fallback?: string): string {
+function messageForStatus(status: number, code?: string, fallback?: string): string {
   if (fallback) return fallback
-  if (status === 429) return "The assistant is busy right now. Please try again shortly."
+  if (status === 429) {
+    if (code === "QUOTA_EXHAUSTED") {
+      return "The AI assistant has reached its usage limit. Please try again later."
+    }
+    return "The assistant is busy right now. Please try again shortly."
+  }
   return "The assistant could not answer that. Please try again."
+}
+
+/**
+ * Terminal UI state for a refusal from the approval endpoint.
+ *
+ * Returns `null` when the failure is recoverable, in which case the card stays
+ * pending with an inline error so the shopper can retry.
+ */
+function refusalState(status: number, code?: string): CartProposalState | null {
+  if (status === 404) return "invalid"
+  if (status === 410) return "expired"
+  if (status === 409 && code === "PROPOSAL_ALREADY_PROCESSED") return "processed"
+  return null
 }
 
 /**
@@ -64,8 +96,9 @@ function messageForStatus(status: number, fallback?: string): string {
  * stays on the server. Every product, price and total it shows comes from the
  * server-built `artifacts` payload — the assistant's prose is never parsed for
  * numbers. A cart proposal is rendered as a suggestion: the Zustand cart is
- * touched exclusively by the Add to Cart handler, after the server has
- * revalidated the proposal.
+ * touched exclusively by the Add to Cart handler, and only after the server
+ * has decided that proposal (`POST /api/agent/cart/approve`). The AI itself
+ * has no way to approve anything.
  */
 export function ShoppingAssistant() {
   const [open, setOpen] = useState(false)
@@ -82,12 +115,21 @@ export function ShoppingAssistant() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const addItem = useCartStore((s) => s.addItem)
+  const cartItems = useCartStore((s) => s.items)
+
+  // Read straight off the store so the hand-off strip reflects the real cart,
+  // including items the shopper added outside this panel.
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
+  const cartSubtotal = cartItems.reduce((sum, item) => sum + item.lineTotal, 0)
 
   const setDecision = useCallback((turnId: string, value: Decision) => {
     setDecisions((current) => ({ ...current, [turnId]: value }))
   }, [])
 
   const requestAssistant = useCallback(async (history: ChatTurn[]) => {
+    // Guard against concurrent requests
+    if (pending) return
+
     setPending(true)
     setError(null)
 
@@ -108,12 +150,12 @@ export function ShoppingAssistant() {
               toolCalls: AgentToolCallSummary[]
               artifacts: AgentChatArtifacts
             }
-            error?: { message?: string }
+            error?: { code?: string; message?: string }
           }
         | null
 
       if (!response.ok || !payload?.data) {
-        setError(messageForStatus(response.status, payload?.error?.message))
+        setError(messageForStatus(response.status, payload?.error?.code, payload?.error?.message))
         return
       }
 
@@ -130,7 +172,7 @@ export function ShoppingAssistant() {
     } finally {
       setPending(false)
     }
-  }, [])
+  }, [pending])
 
   const submit = useCallback(
     (event?: React.FormEvent) => {
@@ -154,63 +196,78 @@ export function ShoppingAssistant() {
     void requestAssistant(turns)
   }, [pending, requestAssistant, turns])
 
+  /**
+   * Load an opening prompt into the composer.
+   *
+   * It is deliberately not sent automatically: the shopper gets to edit it
+   * first, so a suggestion can never trigger a request they did not ask for.
+   */
+  const applySuggestion = useCallback((suggestion: string) => {
+    setDraft(suggestion)
+    inputRef.current?.focus()
+  }, [])
+
   const approveProposal = useCallback(
     async (turnId: string, displayed: CartProposal) => {
       // Synchronous guard: a double click cannot submit twice, even before the
       // disabled state has rendered.
       if (inFlight.current.has(turnId)) return
+
+      // A proposal without a server-issued id cannot be decided — refuse
+      // rather than fall back to anything client-side.
+      if (!displayed.proposalId) {
+        setDecision(turnId, { state: "invalid", busy: false, error: null })
+        return
+      }
+
       inFlight.current.add(turnId)
       setDecision(turnId, { state: "pending", busy: true, error: null })
 
       try {
-        const response = await fetch("/api/agent/cart", {
+        // Only the proposal id is sent: the server re-reads prices and stock.
+        const response = await fetch("/api/agent/cart/approve", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            items: displayed.items.map((line) => ({
-              productId: line.productId,
-              variantId: line.variantId,
-              quantity: line.quantity,
-            })),
-          }),
+          body: JSON.stringify({ proposalId: displayed.proposalId }),
         })
         const payload = (await response.json().catch(() => null)) as
-          | { data?: CartProposal; error?: { message?: string } }
+          | { data?: CartApprovalDecision; error?: { code?: string; message?: string } }
           | null
 
         if (!response.ok || !payload?.data) {
+          const terminal = refusalState(response.status, payload?.error?.code)
           setDecision(turnId, {
-            state: "pending",
+            state: terminal ?? "pending",
             busy: false,
-            error:
-              payload?.error?.message ?? "This proposal could not be verified. Please try again.",
+            error: terminal
+              ? null
+              : (payload?.error?.message ??
+                "This proposal could not be verified. Please try again."),
           })
           return
         }
 
-        const fresh = payload.data
+        const decision = payload.data
 
         // The catalog moved on since the card was drawn. Show the shopper the
         // new numbers and ask again instead of applying a stale proposal.
-        if (proposalDiffersFrom(displayed, fresh)) {
-          setProposals((current) => ({ ...current, [turnId]: fresh }))
-          setDecision(turnId, {
-            state: "pending",
-            busy: false,
-            error: "Prices or availability changed. Review the updated proposal and confirm again.",
-          })
+        if (decision.status === "STALE") {
+          setProposals((current) => ({ ...current, [turnId]: decision.proposal }))
+          setDecision(turnId, { state: "pending", busy: false, error: decision.reason })
           return
         }
 
         // The first and only place an AI suggestion may change the cart.
-        for (const line of fresh.items) {
+        // Only the server-revalidated lines are used, and only for an APPROVED
+        // decision — never the snapshot the browser was holding.
+        for (const line of decision.proposal.items) {
           addItem(toCartItemInput(line))
         }
         setDecision(turnId, { state: "applied", busy: false, error: null })
         toast.success(
-          fresh.summary.itemCount === 1
+          decision.proposal.summary.itemCount === 1
             ? "1 item added to your cart"
-            : `${fresh.summary.itemCount} items added to your cart`
+            : `${decision.proposal.summary.itemCount} items added to your cart`
         )
       } catch {
         setDecision(turnId, {
@@ -226,9 +283,28 @@ export function ShoppingAssistant() {
   )
 
   const cancelProposal = useCallback(
-    (turnId: string) => {
-      // Declining is purely local: the cart and the server are left untouched.
+    async (turnId: string, displayed: CartProposal) => {
+      // Declining never touches the cart, so the card can settle immediately —
+      // but the server is told first so the proposal can never be approved
+      // afterwards.
+      if (inFlight.current.has(turnId)) return
+      inFlight.current.add(turnId)
       setDecision(turnId, { state: "cancelled", busy: false, error: null })
+
+      try {
+        if (displayed.proposalId) {
+          await fetch("/api/agent/cart/reject", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ proposalId: displayed.proposalId }),
+          })
+        }
+      } catch {
+        // A rejection that never reached the server is harmless: the cart is
+        // untouched either way, and the proposal expires on its own.
+      } finally {
+        inFlight.current.delete(turnId)
+      }
     },
     [setDecision]
   )
@@ -304,6 +380,19 @@ export function ShoppingAssistant() {
                   I can also prepare a cart for you — nothing is ever added or paid for without your
                   approval.
                 </p>
+                <ul className="mt-3 flex flex-wrap gap-1.5" data-testid="assistant-suggestions">
+                  {SUGGESTIONS.map((suggestion) => (
+                    <li key={suggestion}>
+                      <button
+                        type="button"
+                        onClick={() => applySuggestion(suggestion)}
+                        className="rounded-full border bg-white px-2.5 py-1 text-[11px] text-foreground transition-colors hover:bg-neutral-100"
+                      >
+                        {suggestion}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 
@@ -361,7 +450,12 @@ export function ShoppingAssistant() {
                             proposals[turn.id] ?? turn.artifacts.cartProposal!
                           )
                         }
-                        onCancel={() => cancelProposal(turn.id)}
+                        onCancel={() =>
+                          void cancelProposal(
+                            turn.id,
+                            proposals[turn.id] ?? turn.artifacts.cartProposal!
+                          )
+                        }
                       />
                     )}
                   </li>
@@ -390,7 +484,7 @@ export function ShoppingAssistant() {
                   <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   {error}
                 </p>
-                {turns.length > 0 && (
+                {turns.length > 0 && !error.includes("usage limit") && (
                   <Button
                     type="button"
                     variant="outline"
@@ -406,6 +500,33 @@ export function ShoppingAssistant() {
               </div>
             )}
           </div>
+
+          {/* Hand-off to the store's own cart and checkout. The assistant can
+              only fill the cart; the order and the payment happen in the
+              normal checkout flow, never from here. */}
+          {cartCount > 0 && (
+            <div
+              data-testid="assistant-cart-handoff"
+              className="flex shrink-0 items-center justify-between gap-2 border-t bg-neutral-50 px-4 py-2.5"
+            >
+              <p className="text-[11px] text-muted-foreground">
+                {cartCount} {cartCount === 1 ? "item" : "items"} in your cart ·{" "}
+                {formatPrice(cartSubtotal, siteConfig.currency)}
+              </p>
+              <div className="flex shrink-0 items-center gap-3">
+                <Link href="/cart" className="text-[11px] font-medium hover:underline">
+                  View cart
+                </Link>
+                <Link
+                  href="/checkout"
+                  data-testid="assistant-checkout"
+                  className="text-[11px] font-medium hover:underline"
+                >
+                  Checkout
+                </Link>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={submit} className="shrink-0 border-t px-4 py-3">
             <div className="flex items-end gap-2">

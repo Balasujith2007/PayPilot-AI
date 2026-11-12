@@ -45,6 +45,12 @@ function fromTarget(target) {
 export async function resolve(specifier, context, next) {
   let target = null
 
+  const isBare =
+    !specifier.startsWith(".") &&
+    !specifier.startsWith("/") &&
+    !specifier.startsWith("@/") &&
+    !specifier.startsWith("node:")
+
   if (specifier.startsWith("@/")) {
     target = resolvePath(projectRoot, "src", specifier.slice(2))
   } else if (specifier.startsWith(".") && context.parentURL?.startsWith("file:")) {
@@ -56,6 +62,20 @@ export async function resolve(specifier, context, next) {
   if (target) {
     const filePath = fromTarget(target)
     if (filePath) return toResolution(filePath)
+  }
+
+  if (isBare) {
+    // Some packages publish extensionless subpaths that Node's ESM resolver
+    // refuses outside a bundler (for example "next/server"). Try the normal
+    // resolution first and only probe node_modules when it fails.
+    try {
+      return await next(specifier, context)
+    } catch (error) {
+      const probe = resolvePath(projectRoot, "node_modules", specifier)
+      const filePath = isFile(probe) ? probe : fromTarget(probe)
+      if (filePath) return toResolution(filePath)
+      throw error
+    }
   }
 
   return next(specifier, context)

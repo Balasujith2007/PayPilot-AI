@@ -10,7 +10,13 @@ import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useCartStore } from "@/store/cart"
 import { useOrdersStore } from "@/store/orders"
+import { useAuthStore } from "@/store/auth"
 import { CartSummary } from "@/components/cart/cart-summary"
+import {
+  PaypalCheckoutButton,
+  usePaypalConfig,
+  type PaypalCustomer,
+} from "@/components/checkout/paypal-checkout"
 import { formatPrice } from "@/lib/utils"
 import { toast } from "sonner"
 import { siteConfig } from "@/lib/config"
@@ -22,6 +28,8 @@ export default function CheckoutPage() {
   const getSubtotal = useCartStore((s) => s.getSubtotal)
   const clearCart = useCartStore((s) => s.clearCart)
   const addOrder = useOrdersStore((s) => s.addOrder)
+  const user = useAuthStore((s) => s.user)
+  const paypal = usePaypalConfig()
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -37,7 +45,24 @@ export default function CheckoutPage() {
     country: "US",
   })
 
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    setMounted(true)
+    if (user) {
+      const defaultAddr = user.addresses?.find((a) => a.isDefault) ?? user.addresses?.[0]
+      setForm((f) => ({
+        ...f,
+        email: f.email || user.email || "",
+        firstName: f.firstName || user.firstName || defaultAddr?.firstName || "",
+        lastName: f.lastName || user.lastName || defaultAddr?.lastName || "",
+        line1: f.line1 || defaultAddr?.line1 || "",
+        line2: f.line2 || defaultAddr?.line2 || "",
+        city: f.city || defaultAddr?.city || "",
+        state: f.state || defaultAddr?.state || "",
+        postalCode: f.postalCode || defaultAddr?.postalCode || "",
+        country: f.country || defaultAddr?.country || "US",
+      }))
+    }
+  }, [user])
 
   if (!mounted) {
     return (
@@ -65,11 +90,42 @@ export default function CheckoutPage() {
 
   const subtotal = getSubtotal()
 
+  // PayPal is the only real payment path. `null` means the config request is
+  // still in flight, so the demo fallback must wait rather than flash on screen.
+  const paypalEnabled = paypal !== null && paypal.enabled && Boolean(paypal.clientId)
+
+  const customer: PaypalCustomer = {
+    customerEmail: form.email || user?.email || undefined,
+    customerName:
+      [form.firstName, form.lastName].filter(Boolean).join(" ") ||
+      (user ? `${user.firstName} ${user.lastName}` : undefined),
+    userId: user?.id,
+    shippingAddress:
+      form.firstName && form.line1 && form.city && form.state && form.postalCode
+        ? {
+            firstName: form.firstName,
+            lastName: form.lastName,
+            line1: form.line1,
+            line2: form.line2 || undefined,
+            city: form.city,
+            state: form.state,
+            postalCode: form.postalCode,
+            country: form.country,
+          }
+        : undefined,
+  }
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  /**
+   * Demo fallback used only when PayPal is not configured.
+   *
+   * It deliberately records the order as `pending`: no payment was processed,
+   * so nothing here may claim a captured payment.
+   */
+  async function handleDemoSubmit(e: React.FormEvent) {
     e.preventDefault()
 
     if (!form.email || !form.firstName || !form.lastName || !form.line1 || !form.city || !form.state || !form.postalCode) {
@@ -79,7 +135,6 @@ export default function CheckoutPage() {
 
     setLoading(true)
 
-    // Create order using demo checkout
     const shipping = subtotal >= siteConfig.freeShippingThreshold ? 0 : 599
     const tax = Math.round(subtotal * siteConfig.taxRate)
     const total = subtotal + shipping + tax
@@ -88,6 +143,7 @@ export default function CheckoutPage() {
     const order: Order = {
       id: orderId,
       orderNumber: orderId,
+      userId: user?.id,
       items: items.map((item) => ({
         id: item.id,
         productId: item.productId,
@@ -101,7 +157,8 @@ export default function CheckoutPage() {
         total: item.lineTotal,
       })),
       status: "processing",
-      paymentStatus: "captured",
+      paymentStatus: "pending",
+      paymentMethod: "other",
       subtotal,
       tax,
       shipping,
@@ -128,7 +185,9 @@ export default function CheckoutPage() {
 
     addOrder(order)
     clearCart()
-    toast.success("Order placed successfully!")
+    toast.message("Demo order created", {
+      description: "No payment was processed — PayPal is not configured on this server.",
+    })
     router.push(`/checkout/success?order_id=${orderId}`)
   }
 
@@ -136,7 +195,7 @@ export default function CheckoutPage() {
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
 
-      <form onSubmit={handleSubmit} className="mt-8 grid gap-8 lg:grid-cols-5">
+      <form onSubmit={handleDemoSubmit} className="mt-8 grid gap-8 lg:grid-cols-5">
         {/* Form */}
         <div className="space-y-8 lg:col-span-3">
           {/* Contact */}
@@ -201,16 +260,31 @@ export default function CheckoutPage() {
             </CardContent>
           </Card>
 
-          {/* Payment note */}
+          {/* Payment */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Payment</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                This is a demo store. No real payment will be processed.
-                In production, this section connects to your payment provider.
-              </p>
+            <CardContent className="space-y-4">
+              {paypal === null ? (
+                <p data-testid="paypal-loading" className="text-sm text-muted-foreground">
+                  Loading payment options…
+                </p>
+              ) : paypalEnabled && paypal ? (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Pay with PayPal. Your card details stay with PayPal and are never
+                    shared with this store.
+                  </p>
+                  <PaypalCheckoutButton config={paypal} customer={customer} />
+                </>
+              ) : (
+                <p data-testid="paypal-unavailable" className="text-sm text-muted-foreground">
+                  {paypal.reason ??
+                    "PayPal is not configured on this server. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET to accept real payments."}{" "}
+                  The button below records a demo order only — no payment is processed.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -232,9 +306,16 @@ export default function CheckoutPage() {
               ))}
               <Separator />
               <CartSummary subtotal={subtotal} />
-              <Button type="submit" size="lg" className="w-full" disabled={loading}>
-                {loading ? "Processing..." : "Place Order"}
-              </Button>
+              {paypalEnabled ? (
+                <p className="text-sm text-muted-foreground">
+                  Complete your purchase with the PayPal button in the Payment
+                  section to the left.
+                </p>
+              ) : (
+                <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                  {loading ? "Processing..." : "Place Demo Order"}
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>

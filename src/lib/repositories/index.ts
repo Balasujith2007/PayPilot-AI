@@ -7,3 +7,4 @@ export { jsonCategoryRepository as categoryRepository } from "./json-category-re
 export { jsonBrandRepository as brandRepository } from "./json-brand-repository"
 export { jsonPageRepository as pageRepository } from "./json-page-repository"
 export { jsonBlogRepository as blogRepository } from "./json-blog-repository"
+export { jsonOrderRepository as orderRepository, JsonOrderRepository } from "./json-order-repository"

@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai"
+import { GoogleGenAI, ApiError } from "@google/genai"
 import type { Tool } from "@google/genai"
 
 import { env } from "@/lib/env"
@@ -43,6 +43,59 @@ export interface GenerateTextResult {
 /** The model id used for all Gemini calls. */
 export const GEMINI_MODEL = env.GEMINI_MODEL
 
+/** Maximum retry attempts for rate-limited requests. */
+const MAX_RETRIES = 3
+
+/** Base delay for exponential backoff (in milliseconds). */
+const BASE_RETRY_DELAY_MS = 1000
+
+/**
+ * Sleep for a given number of milliseconds.
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
+ * Extract Retry-After header value from an error if available.
+ * Returns the delay in milliseconds, or null if not present.
+ */
+function getRetryAfterDelay(error: unknown): number | null {
+  if (!(error instanceof ApiError)) return null
+
+  // ApiError may not expose headers directly; try to extract from the error
+  // message or status. For now, we'll use exponential backoff by default.
+  // If the SDK provides headers in the future, this can be enhanced.
+  return null
+}
+
+/**
+ * Check if an error is a temporary rate limit (429) that can be retried.
+ */
+export function isRetriableRateLimit(error: unknown): boolean {
+  if (!(error instanceof ApiError)) return false
+  // Only retry 429 errors that are not quota exhausted
+  return error.status === 429 && !isQuotaExhausted(error)
+}
+
+/**
+ * Check if an error indicates quota exhaustion (not a temporary rate limit).
+ * This is inferred from error messages that suggest permanent quota issues.
+ */
+export function isQuotaExhausted(error: unknown): boolean {
+  if (!(error instanceof ApiError)) return false
+
+  const message = error.message?.toLowerCase() ?? ""
+  // Common patterns for quota exhaustion messages
+  return (
+    error.status === 429 &&
+    (message.includes("quota") ||
+      message.includes("limit exceeded") ||
+      message.includes("billing") ||
+      message.includes("resource exhausted"))
+  )
+}
+
 let client: GoogleGenAI | null = null
 
 /** True when a Gemini API key is present in the server environment. */
@@ -84,16 +137,51 @@ export async function generateText({
 
   const ai = getGeminiClient()
 
-  const response = await ai.models.generateContent({
-    model: GEMINI_MODEL,
-    contents: messages.map((message) => ({
-      role: message.role,
-      parts: [{ text: message.text }],
-    })),
-    config: systemInstruction ? { systemInstruction } : undefined,
-  })
+  let lastError: unknown = null
 
-  return { text: response.text ?? "", model: GEMINI_MODEL }
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await ai.models.generateContent({
+        model: GEMINI_MODEL,
+        contents: messages.map((message) => ({
+          role: message.role,
+          parts: [{ text: message.text }],
+        })),
+        config: systemInstruction ? { systemInstruction } : undefined,
+      })
+
+      return { text: response.text ?? "", model: GEMINI_MODEL }
+    } catch (error) {
+      lastError = error
+
+      // If this is a quota exhausted error, don't retry
+      if (isQuotaExhausted(error)) {
+        throw error
+      }
+
+      // If not a retriable rate limit, throw immediately
+      if (!isRetriableRateLimit(error)) {
+        throw error
+      }
+
+      // If we've exhausted retries, throw the last error
+      if (attempt >= MAX_RETRIES) {
+        throw error
+      }
+
+      // Calculate delay with exponential backoff
+      const retryAfterDelay = getRetryAfterDelay(error)
+      const baseDelay = BASE_RETRY_DELAY_MS * Math.pow(2, attempt)
+      const delay = retryAfterDelay ?? baseDelay
+
+      console.log(`[gemini-client] Rate limited (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying after ${delay}ms`)
+
+      await sleep(delay)
+    }
+  }
+
+  // This should never be reached, but TypeScript needs it
+  throw lastError ?? new Error("Unknown error in generateText")
 }
 
 export interface GenerateWithToolsInput {
@@ -141,20 +229,55 @@ export async function generateWithTools({
     fallbackMessage,
     model: {
       async generate({ contents, tools: requestTools, systemInstruction: instruction }) {
-        const response = await ai.models.generateContent({
-          model: GEMINI_MODEL,
-          contents,
-          config: {
-            ...(instruction ? { systemInstruction: instruction } : {}),
-            tools: requestTools,
-          },
-        })
+        let lastError: unknown = null
 
-        return {
-          content: response.candidates?.[0]?.content,
-          text: response.text,
-          functionCalls: response.functionCalls,
+        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            const response = await ai.models.generateContent({
+              model: GEMINI_MODEL,
+              contents,
+              config: {
+                ...(instruction ? { systemInstruction: instruction } : {}),
+                tools: requestTools,
+              },
+            })
+
+            return {
+              content: response.candidates?.[0]?.content,
+              text: response.text,
+              functionCalls: response.functionCalls,
+            }
+          } catch (error) {
+            lastError = error
+
+            // If this is a quota exhausted error, don't retry
+            if (isQuotaExhausted(error)) {
+              throw error
+            }
+
+            // If not a retriable rate limit, throw immediately
+            if (!isRetriableRateLimit(error)) {
+              throw error
+            }
+
+            // If we've exhausted retries, throw the last error
+            if (attempt >= MAX_RETRIES) {
+              throw error
+            }
+
+            // Calculate delay with exponential backoff
+            const retryAfterDelay = getRetryAfterDelay(error)
+            const baseDelay = BASE_RETRY_DELAY_MS * Math.pow(2, attempt)
+            const delay = retryAfterDelay ?? baseDelay
+
+            console.log(`[gemini-client] Rate limited in tool loop (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying after ${delay}ms`)
+
+            await sleep(delay)
+          }
         }
+
+        // This should never be reached, but TypeScript needs it
+        throw lastError ?? new Error("Unknown error in generateWithTools")
       },
     },
   })

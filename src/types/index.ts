@@ -183,6 +183,17 @@ export interface Order {
   customerName: string
   createdAt: string
   updatedAt: string
+  /** How the order was paid. Absent on pre-existing demo orders. */
+  paymentMethod?: PaymentMethod
+  /**
+   * Provider-side reference for the payment (for PayPal, the capture id).
+   * Written only by the server after a verified capture.
+   */
+  paymentReference?: string
+  /** PayPal order id returned by PayPal Orders API. */
+  paypalOrderId?: string
+  /** Timestamp when payment was verified and completed. */
+  completedAt?: string
 }
 
 // --- User ---
@@ -221,7 +232,7 @@ export interface Address {
 
 // --- Payment ---
 
-export type PaymentMethod = "card" | "bank_transfer" | "wallet" | "other"
+export type PaymentMethod = "card" | "paypal" | "bank_transfer" | "wallet" | "other"
 
 export interface Payment {
   id: string
@@ -438,6 +449,10 @@ export type CartProposalSummary = {
  *
  * `applied` and `paymentInitiated` are always `false`: nothing in this payload
  * can change the cart, start checkout or take a payment.
+ *
+ * The identity fields are issued by the server when the proposal is registered
+ * (see src/lib/ai/approvals). They are the *only* thing the shopper's approval
+ * request sends back: the browser never resubmits prices or stock.
  */
 export type CartProposal = {
   action: "add_to_cart"
@@ -450,6 +465,43 @@ export type CartProposal = {
   rejected: CartProposalRejection[]
   summary: CartProposalSummary
   note?: string
+  /** Server-issued id required to approve or reject this proposal. */
+  proposalId?: string
+  /** ISO timestamp the proposal was registered. */
+  createdAt?: string
+  /** ISO timestamp after which the proposal can no longer be approved. */
+  expiresAt?: string
+}
+
+/**
+ * Outcome of `POST /api/agent/cart/approve`.
+ *
+ * `APPROVED` carries the freshly revalidated lines the browser may add to its
+ * cart. `STALE` means the catalog moved on: nothing is applied and the
+ * replacement proposal must be confirmed again.
+ */
+export type CartApprovalDecision =
+  | {
+      status: "APPROVED"
+      proposalId: string
+      decidedAt: string
+      proposal: CartProposal
+    }
+  | {
+      status: "STALE"
+      proposalId: string
+      decidedAt: string
+      /** Human-readable reason the earlier proposal could not be applied. */
+      reason: string
+      /** A fresh proposal (new id and expiry) that must be approved again. */
+      proposal: CartProposal
+    }
+
+/** Outcome of `POST /api/agent/cart/reject`. Never touches a cart. */
+export interface CartRejectionResult {
+  status: "REJECTED"
+  proposalId: string
+  decidedAt: string
 }
 
 /** Structured, server-derived output the chat UI can render for this turn. */
@@ -572,6 +624,102 @@ export interface OrderRepository {
     pagination?: PaginationParams
   ): Promise<PaginatedResult<Order>>
   getById(id: string): Promise<Order | null>
-  create(order: Omit<Order, "id" | "createdAt" | "updatedAt">): Promise<Order>
+  create(order: Order | (Omit<Order, "id" | "createdAt" | "updatedAt"> & { id?: string; createdAt?: string; updatedAt?: string })): Promise<Order>
   updateStatus(id: string, status: OrderStatus): Promise<Order>
+}
+
+// ============================================================================
+// PayPal Checkout (Task 20)
+// ============================================================================
+
+/**
+ * Sandbox is the default and the only mode the app will enter on its own.
+ * Live requires an explicitly configured live API base URL — see
+ * src/lib/paypal/config.ts. The app never switches to live by itself.
+ */
+export type PaypalMode = "sandbox" | "live"
+
+/**
+ * Client-safe PayPal settings.
+ *
+ * Contains the *client id* only, which is public by design (it is embedded in
+ * the PayPal JS SDK script tag). The client secret never leaves the server and
+ * is never exposed through a NEXT_PUBLIC_ variable.
+ */
+export type PaypalClientConfig = {
+  enabled: boolean
+  clientId: string | null
+  currency: string
+  mode: PaypalMode
+  /** Populated when PayPal is not usable, so the UI can explain why. */
+  reason?: string
+}
+
+/** One requested checkout line. Prices are never accepted from the browser. */
+export type PaypalCheckoutLineInput = {
+  productId: string
+  variantId: string
+  quantity: number
+}
+
+/** A checkout line rebuilt from the server-side catalog. */
+export type PaypalCheckoutLine = {
+  productId: string
+  variantId: string
+  name: string
+  variantName: string
+  sku: string
+  image: ProductImage
+  /** Unit price in cents, read from the catalog. */
+  unitPrice: number
+  quantity: number
+  lineTotal: number
+}
+
+/** Server-calculated money for a checkout, in cents. */
+export type PaypalCheckoutAmounts = {
+  subtotal: number
+  shipping: number
+  tax: number
+  total: number
+  currency: string
+}
+
+/** Result of `POST /api/paypal/orders`. */
+export type PaypalOrderResponse = {
+  checkoutRef: string
+  paypalOrderId: string
+  amounts: PaypalCheckoutAmounts
+  expiresAt: string
+}
+
+export type PaypalCheckoutStatus = "PENDING" | "COMPLETED" | "FAILED"
+
+/**
+ * Result of `POST /api/paypal/capture`.
+ *
+ * `COMPLETED` is the only status that may be shown as a paid order, and it is
+ * produced exclusively from a server-verified PayPal capture.
+ */
+export type PaypalCaptureResponse = {
+  status: PaypalCheckoutStatus
+  checkoutRef: string
+  paypalOrderId: string
+  /** Present once the server has verified and recorded the capture. */
+  order?: Order
+  /** PayPal capture id, when the capture completed. */
+  captureId?: string
+  /** Shopper-readable explanation when the capture did not complete. */
+  reason?: string
+}
+
+/** Result of `GET /api/paypal/orders?ref=…` for the confirmation page. */
+export type PaypalOrderLookup = {
+  checkoutRef: string
+  status: PaypalCheckoutStatus
+  amounts: PaypalCheckoutAmounts
+  createdAt: string
+  expiresAt: string
+  captureId?: string
+  order?: Order
 }

@@ -57,16 +57,11 @@ export default async function HomePage() {
             A free, open-source ecommerce template built with Next.js, Tailwind CSS, and shadcn/ui.
             Production-ready, fully responsive, and designed to connect to any checkout system.
           </p>
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
+          <div className="mt-8 flex justify-center">
             <Button size="lg" asChild>
               <Link href="/shop">
                 Shop Now
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="https://github.com/Epic-Design-Labs/nextjs-ecommerce-starter" target="_blank" rel="noopener">
-                View on GitHub
               </Link>
             </Button>
           </div>

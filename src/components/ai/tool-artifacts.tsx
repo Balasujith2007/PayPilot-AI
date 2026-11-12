@@ -16,6 +16,33 @@ import type {
 
 const CARD_SIZES = "(max-width: 640px) 40vw, 160px"
 
+/** Words worth matching a query against, ignoring very short filler tokens. */
+const MIN_MATCH_TOKEN_LENGTH = 3
+
+/**
+ * Up to two reasons this product matches the shopper's request.
+ *
+ * Derived only from the server-built product summary — the assistant's prose
+ * is never parsed, and a product that matches nothing still renders (with no
+ * reasons) rather than being hidden or reworded.
+ */
+function matchReasons(product: AgentProductSummary, query: string): string[] {
+  const reasons: string[] = []
+
+  const tokens = query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length >= MIN_MATCH_TOKEN_LENGTH)
+  const haystack = [...product.categories, ...product.tags].map((value) => value.toLowerCase())
+  const matched = tokens.find((token) => haystack.some((value) => value.includes(token)))
+
+  if (matched) reasons.push(`Matches “${matched}”`)
+  if (product.compareAtPrice !== undefined) reasons.push("On sale")
+  if (product.inStock && product.rating >= 4.5) reasons.push(`Rated ${product.rating}/5`)
+
+  return reasons.slice(0, 2)
+}
+
 /**
  * Renderers for the structured artifacts the chat API returns. Every value
  * shown comes from the server catalog — the assistants prose is never parsed
@@ -37,7 +64,11 @@ export function SearchResults({ result }: { result: AgentSearchResult }) {
       </p>
       <div className="mt-2 grid grid-cols-2 gap-3">
         {result.products.map((product) => (
-          <AgentProductCard key={product.id} product={product} />
+          <AgentProductCard
+            key={product.id}
+            product={product}
+            reasons={matchReasons(product, result.query)}
+          />
         ))}
       </div>
     </div>
@@ -48,10 +79,13 @@ export function AgentProductCard({
   product,
   footnote,
   badge,
+  reasons,
 }: {
   product: AgentProductSummary
   footnote?: string
   badge?: string
+  /** Short, server-derived reasons this product matches the request. */
+  reasons?: string[]
 }) {
   return (
     <Link
@@ -80,6 +114,19 @@ export function AgentProductCard({
           </span>
         )}
       </p>
+      {reasons && reasons.length > 0 && (
+        <ul className="mt-1 space-y-0.5">
+          {reasons.map((reason) => (
+            <li
+              key={reason}
+              className="flex items-center gap-1 text-[10px] text-muted-foreground"
+            >
+              <Check className="h-2.5 w-2.5 shrink-0 text-success" />
+              {reason}
+            </li>
+          ))}
+        </ul>
+      )}
       {footnote && <p className="mt-1 text-[11px] text-muted-foreground">{footnote}</p>}
       {!product.inStock && <p className="mt-1 text-[11px] text-destructive">Out of stock</p>}
     </Link>
@@ -176,19 +223,6 @@ export function BudgetResults({ budget }: { budget: AgentBudgetResult }) {
       {budget.eligible.length === 0 ? (
         <div className="mt-2 rounded-md border border-dashed px-3 py-3 text-xs text-muted-foreground">
           <p>{budget.note ?? "Nothing in the catalog fits this budget."}</p>
-          {budget.recommendations.nextStepUp && (
-            <p className="mt-1.5">
-              Closest option:{" "}
-              {/* The over-budget candidate is reported by id only, so it has no
-                  product URL to link to — show it as text. */}
-              <span className="font-medium text-foreground">
-                {budget.recommendations.nextStepUp.name}
-              </span>{" "}
-              at {formatCents(budget.recommendations.nextStepUp.price, budget.currency)} —{" "}
-              {formatCents(budget.recommendations.nextStepUp.additionalNeeded, budget.currency)} over
-              budget.
-            </p>
-          )}
         </div>
       ) : (
         <div className="mt-2 space-y-2">
@@ -203,10 +237,45 @@ export function BudgetResults({ budget }: { budget: AgentBudgetResult }) {
         </div>
       )}
 
+      {/* Shown whether or not anything fits: the shopper sees what the next
+          price tier buys, and by how much they would need to stretch. */}
+      {budget.recommendations.nextStepUp && (
+        <NextTierNote
+          nextStepUp={budget.recommendations.nextStepUp}
+          currency={budget.currency}
+        />
+      )}
+
       {budget.note && budget.eligible.length > 0 && (
         <p className="mt-2 text-[11px] text-muted-foreground">{budget.note}</p>
       )}
     </div>
+  )
+}
+
+/**
+ * The cheapest option just out of reach.
+ *
+ * The tool reports it by id only, so there is no product URL to link to — it
+ * is rendered as text rather than as a card.
+ */
+function NextTierNote({
+  nextStepUp,
+  currency,
+}: {
+  nextStepUp: NonNullable<AgentBudgetResult["recommendations"]["nextStepUp"]>
+  currency?: string
+}) {
+  return (
+    <p
+      data-testid="budget-next-tier"
+      className="mt-2 rounded-md bg-neutral-50 px-2.5 py-2 text-[11px] text-muted-foreground"
+    >
+      Next price tier:{" "}
+      <span className="font-medium text-foreground">{nextStepUp.name}</span> at{" "}
+      {formatCents(nextStepUp.price, currency)} —{" "}
+      {formatCents(nextStepUp.additionalNeeded, currency)} over budget.
+    </p>
   )
 }
 

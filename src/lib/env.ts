@@ -31,6 +31,20 @@ const envSchema = z.object({
   GEMINI_API_KEY: optionalString(),
   GEMINI_MODEL: optionalString().default("gemini-3.6-flash"),
 
+  // PayPal (server-side only). The client id is not a secret — it is embedded
+  // in the PayPal JS SDK script tag — but it is still served to the browser
+  // through GET /api/paypal/config rather than a NEXT_PUBLIC_ variable, so the
+  // secret and the id can never drift apart.
+  //   PAYPAL_CLIENT_ID       → Sandbox/Live application client id
+  //   PAYPAL_CLIENT_SECRET   → server-only; never leaves this process
+  //   PAYPAL_API_BASE_URL    → defaults to the Sandbox host. Setting the Live
+  //                            host is the *only* way to leave Sandbox mode.
+  // All optional: the storefront still boots and checkout falls back to its
+  // existing demo behaviour when PayPal is not configured.
+  PAYPAL_CLIENT_ID: optionalString(),
+  PAYPAL_CLIENT_SECRET: optionalString(),
+  PAYPAL_API_BASE_URL: optionalString(),
+
   // Uncomment when integrating a payment provider:
   // STRIPE_SECRET_KEY: z.string().startsWith("sk_"),
   // NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().startsWith("pk_"),

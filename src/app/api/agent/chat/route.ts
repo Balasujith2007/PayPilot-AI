@@ -1,9 +1,16 @@
 import { ApiError } from "@google/genai"
 import { NextResponse } from "next/server"
 
-import { GeminiConfigError, GEMINI_MODEL, generateWithTools, isGeminiConfigured } from "@/lib/ai/gemini-client"
+import {
+  GeminiConfigError,
+  GEMINI_MODEL,
+  generateWithTools,
+  isGeminiConfigured,
+  isQuotaExhausted,
+} from "@/lib/ai/gemini-client"
 import type { GeminiMessage } from "@/lib/ai/gemini-client"
 import { collectArtifacts } from "@/lib/ai/artifacts"
+import { registerCartProposal } from "@/lib/ai/approvals"
 import { PAYPILOT_SYSTEM_PROMPT } from "@/lib/ai/system-prompt"
 import {
   AGENT_MAX_TOOL_CALLS,
@@ -112,6 +119,14 @@ function classifyProviderError(error: unknown): {
   }
 
   if (providerStatus === 429) {
+    // Distinguish between temporary rate limits and quota exhaustion
+    if (isQuotaExhausted(error)) {
+      return {
+        status: 429,
+        code: "QUOTA_EXHAUSTED",
+        message: "The AI assistant has reached its usage limit. Please try again later or contact support.",
+      }
+    }
     return {
       status: 429,
       code: "RATE_LIMITED",
@@ -168,6 +183,15 @@ export async function POST(request: Request) {
       fallbackMessage: AGENT_TOOL_FALLBACK_MESSAGE,
     })
 
+    const artifacts = collectArtifacts(toolExecutions)
+
+    // Registering attaches the server-issued proposal id the browser needs to
+    // approve or reject the proposal later. It is a registry write only: no
+    // cart is touched, no checkout starts and no payment is taken.
+    if (artifacts.cartProposal) {
+      artifacts.cartProposal = registerCartProposal(artifacts.cartProposal)
+    }
+
     const result: AgentChatResult = {
       reply: text,
       model: GEMINI_MODEL,
@@ -175,7 +199,7 @@ export async function POST(request: Request) {
       // Structured, catalog-derived results for the UI. The model only chose
       // the tools; every product, price and total here comes from the server.
       // A cart proposal is returned as data only — it is never applied here.
-      artifacts: collectArtifacts(toolExecutions),
+      artifacts,
     }
     const response: ApiResponse<AgentChatResult> = { data: result }
     return NextResponse.json(response)
