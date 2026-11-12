@@ -183,6 +183,17 @@ export interface Order {
   customerName: string
   createdAt: string
   updatedAt: string
+  /** How the order was paid. Absent on pre-existing demo orders. */
+  paymentMethod?: PaymentMethod
+  /**
+   * Provider-side reference for the payment (for PayPal, the capture id).
+   * Written only by the server after a verified capture.
+   */
+  paymentReference?: string
+  /** PayPal order id returned by PayPal Orders API. */
+  paypalOrderId?: string
+  /** Timestamp when payment was verified and completed. */
+  completedAt?: string
 }
 
 // --- User ---
@@ -221,7 +232,7 @@ export interface Address {
 
 // --- Payment ---
 
-export type PaymentMethod = "card" | "bank_transfer" | "wallet" | "other"
+export type PaymentMethod = "card" | "paypal" | "bank_transfer" | "wallet" | "other"
 
 export interface Payment {
   id: string
@@ -262,6 +273,251 @@ export interface ApiError {
   message: string
   field?: string
   details?: Record<string, string[]>
+}
+
+// --- AI Agent ---
+
+/** Summary of a tool the agent invoked while answering. Args are not echoed. */
+export interface AgentToolCallSummary {
+  name: string
+  ok: boolean
+}
+
+/**
+ * Compact catalog product. Always rebuilt server-side from the product
+ * repository — no value here is ever taken from the model or the client.
+ */
+export type AgentProductSummary = {
+  id: string
+  name: string
+  slug: string
+  url: string
+  description: string
+  /** Primary catalog image URL, or null when the product has none. */
+  image: string | null
+  /** Unit price in cents */
+  price: number
+  priceFormatted: string
+  compareAtPrice?: number
+  currency: string
+  rating: number
+  reviewCount: number
+  brand: string | null
+  categories: string[]
+  tags: string[]
+  inStock: boolean
+}
+
+/** Result of the `search_products` tool. */
+export type AgentSearchResult = {
+  query: string
+  category: string | null
+  categoryMatched: boolean
+  resultCount: number
+  totalMatches: number
+  products: AgentProductSummary[]
+  note?: string
+}
+
+export type AgentComparisonProduct = AgentProductSummary & {
+  variantCount: number
+  availableVariantCount: number
+  variantNames: string[]
+  compareAtPriceFormatted?: string
+}
+
+/** One compared attribute, keyed by product id. */
+export type AgentComparisonRow = {
+  attribute: string
+  /** True when every compared product shares the same value. */
+  same: boolean
+  values: Record<string, string>
+}
+
+/** Result of the `compare_products` tool. */
+export type AgentComparisonResult = {
+  currency: string
+  comparedCount: number
+  notFound: string[]
+  products: AgentComparisonProduct[]
+  rows: AgentComparisonRow[]
+  highlights: {
+    cheapest: { id: string; name: string; price: number }
+    highestRated: { id: string; name: string; rating: number }
+  }
+}
+
+export type AgentBudgetProduct = AgentProductSummary & {
+  remainingBudget: number
+  remainingBudgetFormatted: string
+  estimatedShipping: number
+  estimatedTax: number
+  estimatedTotal: number
+  estimatedTotalFormatted: string
+  qualifiesForFreeShipping: boolean
+}
+
+export type AgentBudgetPick = {
+  id: string
+  name: string
+  price: number
+  priceFormatted: string
+  rating: number
+}
+
+/** Result of the `check_budget` tool. */
+export type AgentBudgetResult = {
+  budget: number
+  budgetFormatted?: string
+  currency?: string
+  category: string | null
+  categoryMatched?: boolean
+  requirements?: string | null
+  thresholds?: {
+    freeShipping: number
+    freeShippingFormatted: string
+    taxRate: number
+  }
+  eligibleCount: number
+  totalEligible?: number
+  eligible: AgentBudgetProduct[]
+  recommendations: {
+    topPicks: AgentBudgetPick[]
+    cheapest: { id: string; name: string; price: number } | null
+    highestRated: { id: string; name: string; rating: number } | null
+    nextStepUp: {
+      id: string
+      name: string
+      price: number
+      additionalNeeded: number
+    } | null
+  }
+  note?: string
+}
+
+/** One line of a cart proposal. Every value is server-catalog derived. */
+export type CartProposalLine = {
+  productId: string
+  variantId: string
+  name: string
+  variantName: string
+  sku: string
+  slug: string
+  url: string
+  image: string | null
+  /** Unit price in cents, read from the catalog */
+  unitPrice: number
+  unitPriceFormatted: string
+  quantity: number
+  lineTotal: number
+  lineTotalFormatted: string
+  currency: string
+  availableQuantity: number
+}
+
+export type CartProposalRejectionCode =
+  | "NOT_FOUND"
+  | "VARIANT_NOT_FOUND"
+  | "OUT_OF_STOCK"
+  | "INSUFFICIENT_STOCK"
+
+/** A requested line the server refused, with a shopper-readable reason. */
+export type CartProposalRejection = {
+  productId: string
+  variantId: string | null
+  quantity: number
+  code: CartProposalRejectionCode
+  message: string
+}
+
+export type CartProposalSummary = {
+  itemCount: number
+  subtotal: number
+  subtotalFormatted: string
+  shipping: number
+  shippingFormatted: string
+  tax: number
+  taxFormatted: string
+  total: number
+  totalFormatted: string
+  freeShippingThreshold: number
+  qualifiesForFreeShipping: boolean
+}
+
+/**
+ * A cart proposal awaiting explicit shopper approval.
+ *
+ * `applied` and `paymentInitiated` are always `false`: nothing in this payload
+ * can change the cart, start checkout or take a payment.
+ *
+ * The identity fields are issued by the server when the proposal is registered
+ * (see src/lib/ai/approvals). They are the *only* thing the shopper's approval
+ * request sends back: the browser never resubmits prices or stock.
+ */
+export type CartProposal = {
+  action: "add_to_cart"
+  status: "proposed"
+  applied: false
+  requiresApproval: true
+  paymentInitiated: false
+  currency: string
+  items: CartProposalLine[]
+  rejected: CartProposalRejection[]
+  summary: CartProposalSummary
+  note?: string
+  /** Server-issued id required to approve or reject this proposal. */
+  proposalId?: string
+  /** ISO timestamp the proposal was registered. */
+  createdAt?: string
+  /** ISO timestamp after which the proposal can no longer be approved. */
+  expiresAt?: string
+}
+
+/**
+ * Outcome of `POST /api/agent/cart/approve`.
+ *
+ * `APPROVED` carries the freshly revalidated lines the browser may add to its
+ * cart. `STALE` means the catalog moved on: nothing is applied and the
+ * replacement proposal must be confirmed again.
+ */
+export type CartApprovalDecision =
+  | {
+      status: "APPROVED"
+      proposalId: string
+      decidedAt: string
+      proposal: CartProposal
+    }
+  | {
+      status: "STALE"
+      proposalId: string
+      decidedAt: string
+      /** Human-readable reason the earlier proposal could not be applied. */
+      reason: string
+      /** A fresh proposal (new id and expiry) that must be approved again. */
+      proposal: CartProposal
+    }
+
+/** Outcome of `POST /api/agent/cart/reject`. Never touches a cart. */
+export interface CartRejectionResult {
+  status: "REJECTED"
+  proposalId: string
+  decidedAt: string
+}
+
+/** Structured, server-derived output the chat UI can render for this turn. */
+export type AgentChatArtifacts = {
+  search?: AgentSearchResult
+  comparison?: AgentComparisonResult
+  budget?: AgentBudgetResult
+  cartProposal?: CartProposal
+}
+
+export interface AgentChatResult {
+  reply: string
+  model: string
+  toolCalls: AgentToolCallSummary[]
+  /** Rebuilt server-side from tool results — never from model text. */
+  artifacts: AgentChatArtifacts
 }
 
 // --- Pagination ---
@@ -368,6 +624,102 @@ export interface OrderRepository {
     pagination?: PaginationParams
   ): Promise<PaginatedResult<Order>>
   getById(id: string): Promise<Order | null>
-  create(order: Omit<Order, "id" | "createdAt" | "updatedAt">): Promise<Order>
+  create(order: Order | (Omit<Order, "id" | "createdAt" | "updatedAt"> & { id?: string; createdAt?: string; updatedAt?: string })): Promise<Order>
   updateStatus(id: string, status: OrderStatus): Promise<Order>
+}
+
+// ============================================================================
+// PayPal Checkout (Task 20)
+// ============================================================================
+
+/**
+ * Sandbox is the default and the only mode the app will enter on its own.
+ * Live requires an explicitly configured live API base URL — see
+ * src/lib/paypal/config.ts. The app never switches to live by itself.
+ */
+export type PaypalMode = "sandbox" | "live"
+
+/**
+ * Client-safe PayPal settings.
+ *
+ * Contains the *client id* only, which is public by design (it is embedded in
+ * the PayPal JS SDK script tag). The client secret never leaves the server and
+ * is never exposed through a NEXT_PUBLIC_ variable.
+ */
+export type PaypalClientConfig = {
+  enabled: boolean
+  clientId: string | null
+  currency: string
+  mode: PaypalMode
+  /** Populated when PayPal is not usable, so the UI can explain why. */
+  reason?: string
+}
+
+/** One requested checkout line. Prices are never accepted from the browser. */
+export type PaypalCheckoutLineInput = {
+  productId: string
+  variantId: string
+  quantity: number
+}
+
+/** A checkout line rebuilt from the server-side catalog. */
+export type PaypalCheckoutLine = {
+  productId: string
+  variantId: string
+  name: string
+  variantName: string
+  sku: string
+  image: ProductImage
+  /** Unit price in cents, read from the catalog. */
+  unitPrice: number
+  quantity: number
+  lineTotal: number
+}
+
+/** Server-calculated money for a checkout, in cents. */
+export type PaypalCheckoutAmounts = {
+  subtotal: number
+  shipping: number
+  tax: number
+  total: number
+  currency: string
+}
+
+/** Result of `POST /api/paypal/orders`. */
+export type PaypalOrderResponse = {
+  checkoutRef: string
+  paypalOrderId: string
+  amounts: PaypalCheckoutAmounts
+  expiresAt: string
+}
+
+export type PaypalCheckoutStatus = "PENDING" | "COMPLETED" | "FAILED"
+
+/**
+ * Result of `POST /api/paypal/capture`.
+ *
+ * `COMPLETED` is the only status that may be shown as a paid order, and it is
+ * produced exclusively from a server-verified PayPal capture.
+ */
+export type PaypalCaptureResponse = {
+  status: PaypalCheckoutStatus
+  checkoutRef: string
+  paypalOrderId: string
+  /** Present once the server has verified and recorded the capture. */
+  order?: Order
+  /** PayPal capture id, when the capture completed. */
+  captureId?: string
+  /** Shopper-readable explanation when the capture did not complete. */
+  reason?: string
+}
+
+/** Result of `GET /api/paypal/orders?ref=…` for the confirmation page. */
+export type PaypalOrderLookup = {
+  checkoutRef: string
+  status: PaypalCheckoutStatus
+  amounts: PaypalCheckoutAmounts
+  createdAt: string
+  expiresAt: string
+  captureId?: string
+  order?: Order
 }

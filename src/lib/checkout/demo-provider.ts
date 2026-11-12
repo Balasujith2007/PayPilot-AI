@@ -35,10 +35,7 @@ export const demoCheckoutProvider: CheckoutProvider = {
     }
   },
 
-  async handleWebhook(
-    _payload: unknown,
-    _signature: string
-  ): Promise<WebhookResult> {
+  async handleWebhook(): Promise<WebhookResult> {
     // Demo webhook always succeeds
     return {
       success: true,

@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRecentlyViewedStore } from "@/store/recently-viewed"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { PLACEHOLDER_IMAGE } from "@/lib/constants"
 import { formatPrice } from "@/lib/utils"
 
@@ -13,8 +13,7 @@ interface RecentlyViewedProps {
 
 export function RecentlyViewed({ excludeProductId }: RecentlyViewedProps) {
   const getItems = useRecentlyViewedStore((s) => s.getItems)
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const mounted = useHydrated()
 
   if (!mounted) return null
 

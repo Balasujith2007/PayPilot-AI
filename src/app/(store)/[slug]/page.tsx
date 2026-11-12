@@ -4,7 +4,6 @@ import { productRepository, categoryRepository, brandRepository } from "@/lib/re
 import { ProductDetailView } from "./product-detail-view"
 import { CategoryView } from "./category-view"
 import { BrandView } from "./brand-view"
-import { formatPrice } from "@/lib/utils"
 import { siteConfig } from "@/lib/config"
 import data from "@/data/products.json"
 
@@ -12,10 +11,9 @@ interface SlugPageProps {
   params: Promise<{ slug: string }>
 }
 
-// Only render slugs returned by generateStaticParams — any other slug
-// automatically gets a proper 404 response. Rebuild/redeploy to pick
-// up new products, categories, or brands.
-export const dynamicParams = false
+// Allow dynamic params so newly added products, categories, or brands
+// can be resolved dynamically on demand at request time.
+export const dynamicParams = true
 
 export async function generateStaticParams() {
   const productSlugs = data.products
@@ -37,7 +35,6 @@ export async function generateMetadata({
   const product = await productRepository.getBySlug(slug)
   if (product) {
     const variant = product.variants[0]
-    const price = variant ? formatPrice(variant.price, variant.currency) : ""
     return {
       title: product.name,
       description: product.description,
