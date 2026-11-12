@@ -7,7 +7,9 @@ import { ProductShelfSection } from "@/components/home/product-shelf-section"
 import { CategoriesSection } from "@/components/home/categories-section"
 import { CustomerReviewsSection } from "@/components/home/customer-reviews-section"
 import { WhyUsSection } from "@/components/home/why-us-section"
+import { FlashSaleBanner } from "@/components/home/flash-sale-banner"
 import { ScrollProgressBar } from "@/components/layout/scroll-progress-bar"
+import { prisma } from "@/lib/db/prisma"
 
 export const metadata: Metadata = {
   title: "PayPilot AI — Shop Smarter with Your Personal AI Assistant",
@@ -22,6 +24,9 @@ export const metadata: Metadata = {
     url: siteConfig.url,
   },
 }
+
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 export default async function HomePage() {
   const allCategories = await categoryRepository.list()
@@ -70,6 +75,22 @@ export default async function HomePage() {
     .sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
     .slice(0, 4)
 
+  // Query live Flash Sale from Neon PostgreSQL
+  let activeFlashSale = null
+  try {
+    const now = new Date()
+    activeFlashSale = await prisma.flashSale.findFirst({
+      where: {
+        isActive: true,
+        startsAt: { lte: now },
+        endsAt: { gte: now },
+      },
+      orderBy: { startsAt: "desc" },
+    })
+  } catch (e) {
+    console.warn("Could not query active flash sale:", e)
+  }
+
   return (
     <div className="flex flex-col">
       {/* Scroll Progress Bar */}
@@ -77,6 +98,9 @@ export default async function HomePage() {
 
       {/* Hero */}
       <HeroSection stats={stats} />
+
+      {/* Live Flash Sale Banner if active */}
+      <FlashSaleBanner flashSale={activeFlashSale} />
 
       {/* 1. Brand Strip */}
       <BrandStrip brands={brandNames} />

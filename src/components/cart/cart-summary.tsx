@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowRight, Tag, X, Sparkles, Check } from "lucide-react"
+import { ArrowRight, Tag, X, Sparkles, Check, MapPin, Truck, AlertCircle } from "lucide-react"
 import { formatPrice } from "@/lib/utils"
 import { siteConfig } from "@/lib/config"
 import { useAuthStore } from "@/store/auth"
@@ -30,6 +30,18 @@ export function CartSummary({
   const calculateDiscount = useCouponStore((s) => s.calculateDiscount)
 
   const [couponInput, setCouponInput] = useState("")
+  const [pincodeInput, setPincodeInput] = useState("")
+  const [pincodeLoading, setPincodeLoading] = useState(false)
+  const [pincodeResult, setPincodeResult] = useState<{
+    isServiceable: boolean
+    city?: string
+    state?: string
+    areaName?: string
+    standardDelivery?: { days: number; fee: number; isFree: boolean }
+    codAvailable?: boolean
+    preferredCourier?: string
+    message?: string
+  } | null>(null)
 
   // Determine if the user is eligible for the first-purchase ₹500 offer
   const userOrders = user ? getOrdersByEmail(user.email) : []
@@ -46,27 +58,59 @@ export function CartSummary({
   const tax = Math.round(discountedSubtotal * siteConfig.taxRate)
   const total = discountedSubtotal === 0 ? 0 : discountedSubtotal + shipping + tax
 
-  const handleApplyCoupon = (
+  const handleApplyCoupon = async (
     e?: React.FormEvent | React.MouseEvent | React.KeyboardEvent
   ) => {
     if (e) e.preventDefault()
-    if (!couponInput.trim()) return
+    const cleanCode = couponInput.trim().toUpperCase()
+    if (!cleanCode) return
 
-    const result = applyCoupon(couponInput, subtotal, isFirstPurchase)
-    if (result.success) {
-      toast.success(result.message)
-      setCouponInput("")
-    } else {
-      toast.error(result.message)
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: cleanCode, subtotal, isFirstPurchase }),
+      })
+      const data = await res.json()
+      if (data.success && data.coupon) {
+        useCouponStore.getState().setAppliedCoupon(data.coupon)
+        toast.success(data.message)
+        setCouponInput("")
+      } else {
+        toast.error(data.message || "Invalid coupon code")
+      }
+    } catch {
+      const result = applyCoupon(cleanCode, subtotal, isFirstPurchase)
+      if (result.success) {
+        toast.success(result.message)
+        setCouponInput("")
+      } else {
+        toast.error(result.message)
+      }
     }
   }
 
-  const handleQuickApply = (code: string) => {
-    const result = applyCoupon(code, subtotal, isFirstPurchase)
-    if (result.success) {
-      toast.success(result.message)
-    } else {
-      toast.error(result.message)
+  const handleQuickApply = async (code: string) => {
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal, isFirstPurchase }),
+      })
+      const data = await res.json()
+      if (data.success && data.coupon) {
+        useCouponStore.getState().setAppliedCoupon(data.coupon)
+        toast.success(data.message)
+      } else {
+        toast.error(data.message || "Invalid coupon code")
+      }
+    } catch {
+      const result = applyCoupon(code, subtotal, isFirstPurchase)
+      if (result.success) {
+        toast.success(result.message)
+      } else {
+        toast.error(result.message)
+      }
     }
   }
 
@@ -218,6 +262,74 @@ export function CartSummary({
             </button>
           </div>
         )}
+
+        {/* Pincode & Delivery Serviceability Radar */}
+        <div className="pt-2 border-t border-black/10">
+          <label className="text-xs font-bold text-black flex items-center gap-1.5 mb-1.5">
+            <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Delivery Serviceability & Speed Check</span>
+          </label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                maxLength={6}
+                value={pincodeInput}
+                onChange={(e) => setPincodeInput(e.target.value.replace(/[^0-9]/g, ""))}
+                placeholder="Enter 6-digit PIN (e.g. 560001)"
+                className="w-full rounded-full bg-[#F0EEED] px-4 py-2 text-xs text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-black font-mono font-medium"
+              />
+            </div>
+            <button
+              type="button"
+              disabled={pincodeInput.length !== 6 || pincodeLoading}
+              onClick={async () => {
+                setPincodeLoading(true)
+                try {
+                  const res = await fetch(`/api/shipping/check-pincode?pincode=${pincodeInput}&cartTotal=${subtotal}`)
+                  const data = await res.json()
+                  setPincodeResult(data)
+                } catch {
+                  toast.error("Could not check PIN code serviceability")
+                } finally {
+                  setPincodeLoading(false)
+                }
+              }}
+              className="rounded-full bg-zinc-900 text-white px-4 py-2 text-xs font-bold hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+            >
+              {pincodeLoading ? "Checking..." : "Check"}
+            </button>
+          </div>
+
+          {/* Serviceability Result Card */}
+          {pincodeResult && (
+            <div className={`mt-2.5 p-3 rounded-xl text-xs space-y-1 ${
+              pincodeResult.isServiceable
+                ? "bg-emerald-50 border border-emerald-200 text-emerald-950"
+                : "bg-rose-50 border border-rose-200 text-rose-950"
+            }`}>
+              {pincodeResult.isServiceable ? (
+                <>
+                  <div className="flex items-center gap-1.5 font-bold text-emerald-800">
+                    <Truck className="w-4 h-4 text-emerald-600" />
+                    <span>Serviceable to {pincodeResult.city}, {pincodeResult.state}</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-700">
+                    Standard Delivery: <strong>{pincodeResult.standardDelivery?.days} Business Days</strong> ({pincodeResult.standardDelivery?.isFree ? "Free Delivery" : formatPrice(pincodeResult.standardDelivery?.fee || 9900)})
+                  </p>
+                  <p className="text-[10px] text-emerald-600 font-mono">
+                    Partner: {pincodeResult.preferredCourier} &middot; COD: {pincodeResult.codAvailable ? "Available" : "Prepaid Only"}
+                  </p>
+                </>
+              ) : (
+                <div className="flex items-center gap-1.5 text-rose-800">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{pincodeResult.message || "This PIN code is currently unserviceable."}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Checkout Button */}

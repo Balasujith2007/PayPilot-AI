@@ -9,6 +9,9 @@ import { SortDropdown } from "@/components/products/sort-dropdown"
 import type { SortOption } from "@/types"
 import { siteConfig } from "@/lib/config"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 interface ShopPageProps {
   searchParams: Promise<{
     page?: string

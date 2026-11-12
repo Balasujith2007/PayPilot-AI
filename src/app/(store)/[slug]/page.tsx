@@ -14,6 +14,7 @@ interface SlugPageProps {
 // Allow dynamic params so newly added products, categories, or brands
 // can be resolved dynamically on demand at request time.
 export const dynamicParams = true
+export const revalidate = 0
 
 export async function generateStaticParams() {
   const productSlugs = data.products

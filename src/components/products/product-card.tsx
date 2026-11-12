@@ -44,6 +44,11 @@ export function ProductCard({ product }: ProductCardProps) {
     image.url.includes("placeholder.svg") ||
     imageError
 
+  // Real-time stock status across variants
+  const totalStock = product.variants.reduce((acc, v) => acc + (v.inventory?.quantity ?? 10), 0)
+  const isOutOfStock = totalStock === 0
+  const isLowStock = !isOutOfStock && totalStock <= 5
+
   const isWishlisted =
     isClient && wishlistItems.some((i) => i.productId === product.id)
 
@@ -99,11 +104,29 @@ export function ProductCard({ product }: ProductCardProps) {
             src={image.url}
             alt={image.alt || product.name}
             fill
+            unoptimized={Boolean(image.url?.startsWith("data:") || image.url?.startsWith("http"))}
             className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
             onError={() => setImageError(true)}
           />
         )}
+
+        {/* Stock & Discount Badges */}
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
+          {isOutOfStock ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white shadow-xs">
+              Out of Stock
+            </span>
+          ) : isLowStock ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 text-white shadow-xs">
+              Only {totalStock} Left
+            </span>
+          ) : discountPercent ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-black text-white shadow-xs">
+              -{discountPercent}%
+            </span>
+          ) : null}
+        </div>
 
         {/* Wishlist toggle button (hover on desktop, always visible on touch) */}
         <button
@@ -129,11 +152,17 @@ export function ProductCard({ product }: ProductCardProps) {
           <Button
             type="button"
             size="sm"
+            disabled={isOutOfStock}
             onClick={handleQuickAdd}
-            className="w-full gap-2 rounded-full bg-black text-xs font-semibold text-white shadow-md hover:bg-black/85 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-1"
+            className={cn(
+              "w-full gap-2 rounded-full text-xs font-semibold shadow-md focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-1",
+              isOutOfStock
+                ? "bg-zinc-300 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-500 cursor-not-allowed"
+                : "bg-black text-white hover:bg-black/85"
+            )}
           >
             <ShoppingBag className="h-3.5 w-3.5" />
-            Quick add
+            {isOutOfStock ? "Sold Out" : "Quick add"}
           </Button>
         </div>
       </div>

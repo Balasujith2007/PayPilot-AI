@@ -50,4 +50,7 @@ next-env.d.ts
 # audit artifacts
 audit-screenshots/
 
+# temporary scratch
+scratch/
+
 /src/generated/prisma

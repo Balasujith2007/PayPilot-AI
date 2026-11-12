@@ -194,6 +194,10 @@ export interface Order {
   paypalOrderId?: string
   /** Timestamp when payment was verified and completed. */
   completedAt?: string
+  /** Courier partner (e.g. Blue Dart, Delhivery) assigned by admin */
+  carrier?: string
+  /** AWB tracking code assigned by admin */
+  trackingNumber?: string
 }
 
 // --- User ---

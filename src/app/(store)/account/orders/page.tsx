@@ -312,20 +312,24 @@ export default function OrdersPage() {
                         className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4"
                       >
                         <div className="flex items-center gap-3">
-                          {item.image?.url ? (
-                            <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-[#F0EEED] border border-black/5 shrink-0">
-                              <Image
-                                src={item.image.url}
-                                alt={item.image.alt || item.name}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                          ) : (
-                            <div className="h-12 w-12 rounded-xl bg-[#F0EEED] flex items-center justify-center text-black/40 shrink-0">
-                              <Package className="h-5 w-5" />
-                            </div>
-                          )}
+                          {(() => {
+                            const imgUrl = typeof item.image === "string" ? item.image : item.image?.url
+                            return imgUrl ? (
+                              <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-[#F0EEED] border border-black/5 shrink-0">
+                                <Image
+                                  src={imgUrl}
+                                  alt={(typeof item.image === "object" && item.image?.alt) || item.name}
+                                  fill
+                                  unoptimized={Boolean(imgUrl.startsWith("data:") || imgUrl.startsWith("http"))}
+                                  className="object-cover"
+                                />
+                              </div>
+                            ) : (
+                              <div className="h-12 w-12 rounded-xl bg-[#F0EEED] flex items-center justify-center text-black/40 shrink-0">
+                                <Package className="h-5 w-5" />
+                              </div>
+                            )
+                          })()}
                           <div>
                             <p className="text-sm font-semibold text-black line-clamp-1">
                               {item.name}

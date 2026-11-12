@@ -103,6 +103,7 @@ export const RecommendationCard = memo(function RecommendationCard({
                 src={image.url}
                 alt={image.alt || product.name}
                 fill
+                unoptimized={Boolean(image.url?.startsWith("data:") || image.url?.startsWith("http"))}
                 sizes="(max-width: 640px) 240px, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:group-hover:scale-100"
                 onError={() => setImageError(true)}

@@ -43,6 +43,7 @@ export const STORE_COUPONS: Coupon[] = [
 
 interface CouponState {
   appliedCoupon: Coupon | null
+  setAppliedCoupon: (coupon: Coupon | null) => void
   applyCoupon: (
     code: string,
     subtotal: number,
@@ -56,6 +57,7 @@ export const useCouponStore = create<CouponState>()(
   persist(
     (set, get) => ({
       appliedCoupon: null,
+      setAppliedCoupon: (coupon) => set({ appliedCoupon: coupon }),
 
       applyCoupon: (code, subtotal, isFirstPurchase = true) => {
         const cleanCode = code.trim().toUpperCase()

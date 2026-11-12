@@ -54,6 +54,7 @@ export function CompareTray() {
                       src={image.url}
                       alt={image.alt || product.name}
                       fill
+                      unoptimized={Boolean(image.url?.startsWith("data:") || image.url?.startsWith("http"))}
                       sizes="44px"
                       className="object-cover"
                     />

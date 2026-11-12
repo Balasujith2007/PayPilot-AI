@@ -5,8 +5,8 @@
 
 export const siteConfig = {
   // Branding
-  name: "Next.js Ecommerce Starter",
-  tagline: "A free, open-source Next.js ecommerce template.",
+  name: "PayPilot AI",
+  tagline: "E-commerce Site",
   description:
     "A free, production-ready Next.js ecommerce starter template built with Tailwind CSS and shadcn/ui. Responsive, accessible, SEO optimized, and ready to connect to any checkout system. Built by Epic Design Labs.",
 
