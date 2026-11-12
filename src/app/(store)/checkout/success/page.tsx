@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useState, useEffect } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { AlertTriangle, CheckCircle, Clock } from "lucide-react"
 import { useOrdersStore } from "@/store/orders"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { formatPrice, formatDate } from "@/lib/utils"
 import type { ApiResponse, Order, PaypalOrderLookup } from "@/types"
 
@@ -26,9 +27,8 @@ export default function CheckoutSuccessPage() {
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get("order_id")
-
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const getOrderById = useOrdersStore((s) => s.getOrderById)
+  const mounted = useHydrated()
 
   if (!mounted) {
     return (

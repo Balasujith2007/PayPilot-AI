@@ -4,7 +4,7 @@ import Link from "next/link"
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Learn about the Next.js Ecommerce Starter template and Epic Design Labs, the team behind it.",
+    "Learn about the Ecommerce Starter template and Epic Design Labs, the team behind it.",
 }
 
 export default function AboutPage() {
@@ -13,7 +13,7 @@ export default function AboutPage() {
       <h1 className="text-3xl font-bold tracking-tight">About This Starter</h1>
       <div className="mt-8 space-y-6 text-muted-foreground">
         <p>
-          The Next.js Ecommerce Starter is a free, open-source template designed
+          The Ecommerce Starter is a free, open-source template designed
           to give developers and businesses a production-ready foundation for
           building modern online stores. It&apos;s built with Next.js, Tailwind CSS,
           and shadcn/ui — and it&apos;s designed to connect to any checkout or

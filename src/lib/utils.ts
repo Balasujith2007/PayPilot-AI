@@ -10,10 +10,14 @@ export function formatPrice(
   priceInCents: number,
   currency?: string
 ): string {
+  // Always enforce Indian Rupee (INR) and prevent USD/dollars
+  const curr = currency && currency !== "USD" ? currency : siteConfig.currency
+  const amount = priceInCents / 100
   return new Intl.NumberFormat(siteConfig.locale, {
     style: "currency",
-    currency: currency ?? siteConfig.currency,
-  }).format(priceInCents / 100)
+    currency: curr,
+    maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
+  }).format(amount)
 }
 
 export function formatDate(date: string | Date): string {
