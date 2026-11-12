@@ -1,49 +1,85 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
 import { ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { siteConfig } from "@/lib/config"
+import { productRepository, categoryRepository, brandRepository } from "@/lib/repositories"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { HeroSection } from "@/components/hero/hero-section"
+import { BrandStrip } from "@/components/home/brand-strip"
+import { ProductShelfSection } from "@/components/home/product-shelf-section"
+import { CategoriesSection } from "@/components/home/categories-section"
+import { CustomerReviewsSection } from "@/components/home/customer-reviews-section"
+import { WhyUsSection } from "@/components/home/why-us-section"
+import { ScrollProgressBar } from "@/components/layout/scroll-progress-bar"
 import { formatPrice } from "@/lib/utils"
-import { ProductGrid } from "@/components/products/product-grid"
-import { NewsletterForm } from "@/components/layout/newsletter-form"
-import { PLACEHOLDER_IMAGE } from "@/lib/constants"
-import { productRepository, categoryRepository } from "@/lib/repositories"
 
 export const metadata: Metadata = {
-  title: "Next.js Ecommerce Starter — Free Open-Source Template | Epic Design Labs",
+  title: "PayPilot AI — Shop Smarter with Your Personal AI Assistant",
   description:
-    "A free, production-ready Next.js ecommerce starter built with Tailwind CSS and shadcn/ui. Includes cart, checkout, search, auth, wishlist, i18n, SEO, and accessibility. Open source on GitHub.",
+    "An AI-powered ecommerce experience with smart discovery, side-by-side comparisons, transparent recommendations, and seamless checkout.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Next.js Ecommerce Starter — Free Open-Source Template",
+    title: "PayPilot AI — Shop Smarter with Your Personal AI Assistant",
     description:
-      "A free, production-ready Next.js ecommerce starter built with Tailwind CSS and shadcn/ui. Open source on GitHub.",
+      "An AI-powered ecommerce experience with smart discovery, side-by-side comparisons, transparent recommendations, and seamless checkout.",
     type: "website",
     url: siteConfig.url,
   },
-  keywords: [
-    "nextjs ecommerce starter",
-    "next.js ecommerce template",
-    "nextjs store template",
-    "react ecommerce starter",
-    "tailwind ecommerce template",
-    "shadcn ecommerce",
-    "free ecommerce template",
-    "open source ecommerce",
-    "nextjs shopping cart",
-    "ecommerce starter kit",
-  ],
 }
 
 export default async function HomePage() {
-  const categories = await categoryRepository.list()
-  const featuredProducts = await productRepository.getFeatured(4)
+  const allCategories = await categoryRepository.list()
+  const topCategories = allCategories.filter((c) => !c.parentId)
+  const { items: allProducts } = await productRepository.list(undefined, undefined, { page: 1, limit: 100 })
+  const allBrands = await brandRepository.list()
 
+  // 1. New Arrivals: 4 newest products from catalog
+  const { items: newArrivals } = await productRepository.list(
+    undefined,
+    { field: "createdAt", order: "desc" },
+    { page: 1, limit: 4 }
+  )
+
+  // 2. Top Rated: 4 highest-rated active products (since catalog has no sales data)
+  const allActiveProducts = allProducts.filter((p) => p.status === "active")
+  const topRated = [...allActiveProducts]
+    .sort((a, b) => b.rating - a.rating)
+    .slice(0, 4)
+
+  // 3. Brand names for brand strip
+  const brandNames =
+    allBrands.length >= 4
+      ? allBrands.map((b) => b.name)
+      : allCategories.map((c) => c.name)
+
+  const stats = {
+    products: allProducts.length,
+    brands: allBrands.length,
+    categories: allCategories.length,
+  }
+
+  const categoriesWithCounts = topCategories.map((cat) => {
+    const childCategories = allCategories.filter((c) => c.parentId === cat.id)
+    const catIds = [cat.id, ...childCategories.map((c) => c.id)]
+    const count = allProducts.filter((p) =>
+      p.categoryIds.some((id) => catIds.includes(id))
+    ).length
+    return {
+      ...cat,
+      count,
+    }
+  })
+
+  const top4Categories = [...categoriesWithCounts]
+    .sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
+    .slice(0, 4)
 
   return (
     <div className="flex flex-col">
+      {/* Scroll Progress Bar */}
+      <ScrollProgressBar />
+
       {/* Hero */}
       <section className="relative flex h-[650px] items-center justify-center bg-neutral-50">
         <div className="mx-auto max-w-3xl px-4 text-center">
@@ -68,97 +104,37 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="mx-auto w-full max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight">
-            Shop by Category
-          </h2>
-          <Link
-            href="/shop"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground"
-          >
-            View all
-          </Link>
-        </div>
-        <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-          {categories.map((category) => (
-            <Link key={category.id} href={`/${category.slug}`} className="group">
-              <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100">
-                <Image
-                  src={category.image?.url ?? PLACEHOLDER_IMAGE}
-                  alt={category.image?.alt ?? category.name}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  sizes="(max-width: 768px) 50vw, 16vw"
-                />
-              </div>
-              <div className="mt-3 text-center">
-                <h3 className="text-sm font-medium group-hover:underline">
-                  {category.name}
-                </h3>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {/* 1. Brand Strip */}
+      <BrandStrip brands={brandNames} />
 
-      {/* Featured Products */}
-      <section className="mx-auto w-full max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight">
-            Featured Products
-          </h2>
-          <Link
-            href="/shop"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground"
-          >
-            View all
-          </Link>
-        </div>
-        <div className="mt-8">
-          <ProductGrid products={featuredProducts} />
-        </div>
-      </section>
+      {/* 2. NEW ARRIVALS */}
+      <ProductShelfSection
+        title="NEW ARRIVALS"
+        products={newArrivals}
+        viewAllHref="/shop?sort=newest"
+      />
 
-      {/* Developer CTA */}
-      <section className="border-t bg-neutral-50">
-        <div className="mx-auto flex max-w-[1440px] flex-col items-center px-4 py-16 text-center sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Need help building your store?
-          </h2>
-          <p className="mt-4 max-w-xl text-muted-foreground">
-            This starter is free and open source. Grab it from GitHub and build your own,
-            or work with our team at Epic Design Labs to bring your vision to life.
-          </p>
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            <Button size="lg" asChild>
-              <Link href="https://github.com/Epic-Design-Labs/nextjs-ecommerce-starter" target="_blank" rel="noopener">
-                Get the Starter
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="https://epicdesignlabs.com" target="_blank" rel="noopener">
-                Hire a Developer
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* Thin divider */}
+      <hr className="mx-auto max-w-[1440px] border-t border-black/10 px-4 sm:px-6 lg:px-8" />
 
-      {/* Newsletter CTA */}
-      <section className="bg-neutral-900 text-white">
-        <div className="mx-auto flex max-w-[1440px] flex-col items-center px-4 py-16 text-center sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Join our newsletter
-          </h2>
-          <p className="mt-4 text-neutral-400">
-            Get updates on new arrivals and exclusive offers.
-          </p>
-          <NewsletterForm />
-        </div>
-      </section>
+      {/* 3. TOP RATED (named TOP RATED because catalog has no sales data) */}
+      <ProductShelfSection
+        title="TOP RATED"
+        products={topRated}
+        viewAllHref="/shop"
+      />
+
+      {/* Thin divider */}
+      <hr className="mx-auto max-w-[1440px] border-t border-black/10 px-4 sm:px-6 lg:px-8" />
+
+      {/* 4. BROWSE BY CATEGORY (Bento Grid) */}
+      <CategoriesSection categories={top4Categories} />
+
+      {/* 5. OUR HAPPY CUSTOMERS */}
+      <CustomerReviewsSection />
+
+      {/* Why Shop With Us (4 Trust Badges) */}
+      <WhyUsSection />
     </div>
   )
 }

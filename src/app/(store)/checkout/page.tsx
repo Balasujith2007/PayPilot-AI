@@ -21,6 +21,7 @@ import { formatPrice } from "@/lib/utils"
 import { toast } from "sonner"
 import { siteConfig } from "@/lib/config"
 import type { Order } from "@/types"
+import { AuthRequiredDialog } from "@/components/auth/auth-required-dialog"
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -29,9 +30,11 @@ export default function CheckoutPage() {
   const clearCart = useCartStore((s) => s.clearCart)
   const addOrder = useOrdersStore((s) => s.addOrder)
   const user = useAuthStore((s) => s.user)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const paypal = usePaypalConfig()
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [authDialogOpen, setAuthDialogOpen] = useState(false)
 
   const [form, setForm] = useState({
     email: "",
@@ -128,8 +131,23 @@ export default function CheckoutPage() {
   async function handleDemoSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    if (!form.email || !form.firstName || !form.lastName || !form.line1 || !form.city || !form.state || !form.postalCode) {
-      toast.error("Please fill in all required fields")
+    // 🔒 Auth Gate: User MUST be signed in to place an order
+    if (!isAuthenticated) {
+      toast.error("Please sign in or create an account before placing your order.")
+      setAuthDialogOpen(true)
+      return
+    }
+
+    if (
+      !form.email ||
+      !form.firstName ||
+      !form.lastName ||
+      !form.line1 ||
+      !form.city ||
+      !form.state ||
+      !form.postalCode
+    ) {
+      toast.error("Please fill in all required shipping & contact fields")
       return
     }
 
@@ -145,7 +163,7 @@ export default function CheckoutPage() {
       orderNumber: orderId,
       userId: user?.id,
       items: items.map((item) => ({
-        id: item.id,
+        id: item.id || `item-${Math.random().toString(36).substring(2, 9)}`,
         productId: item.productId,
         variantId: item.variantId,
         name: item.name,
@@ -163,9 +181,9 @@ export default function CheckoutPage() {
       tax,
       shipping,
       total,
-      currency: "USD",
+      currency: siteConfig.currency,
       shippingAddress: {
-        id: "addr-1",
+        id: `addr-${Date.now()}`,
         type: "shipping",
         firstName: form.firstName,
         lastName: form.lastName,
@@ -177,8 +195,11 @@ export default function CheckoutPage() {
         country: form.country,
         isDefault: true,
       },
-      customerEmail: form.email,
-      customerName: `${form.firstName} ${form.lastName}`,
+      customerEmail: (form.email || user?.email || "").trim(),
+      customerName:
+        `${form.firstName} ${form.lastName}`.trim() ||
+        user?.firstName ||
+        "Customer",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -199,7 +220,7 @@ export default function CheckoutPage() {
         {/* Form */}
         <div className="space-y-8 lg:col-span-3">
           {/* Contact */}
-          <Card>
+          <Card className="rounded-[20px]">
             <CardHeader>
               <CardTitle className="text-lg">Contact Information</CardTitle>
             </CardHeader>
@@ -220,7 +241,7 @@ export default function CheckoutPage() {
           </Card>
 
           {/* Shipping */}
-          <Card>
+          <Card className="rounded-[20px]">
             <CardHeader>
               <CardTitle className="text-lg">Shipping Address</CardTitle>
             </CardHeader>
@@ -228,33 +249,74 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First name</Label>
-                  <Input id="firstName" name="firstName" value={form.firstName} onChange={handleChange} required />
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    value={form.firstName}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last name</Label>
-                  <Input id="lastName" name="lastName" value={form.lastName} onChange={handleChange} required />
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    value={form.lastName}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="line1">Address</Label>
-                <Input id="line1" name="line1" value={form.line1} onChange={handleChange} required />
+                <Input
+                  id="line1"
+                  name="line1"
+                  value={form.line1}
+                  onChange={handleChange}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="line2">Apartment, suite, etc. (optional)</Label>
-                <Input id="line2" name="line2" value={form.line2} onChange={handleChange} />
+                <Input
+                  id="line2"
+                  name="line2"
+                  value={form.line2}
+                  onChange={handleChange}
+                />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="city">City</Label>
-                  <Input id="city" name="city" value={form.city} onChange={handleChange} required />
+                  <Input
+                    id="city"
+                    name="city"
+                    value={form.city}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="state">State</Label>
-                  <Input id="state" name="state" value={form.state} onChange={handleChange} required />
+                  <Input
+                    id="state"
+                    name="state"
+                    value={form.state}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="postalCode">ZIP code</Label>
-                  <Input id="postalCode" name="postalCode" value={form.postalCode} onChange={handleChange} required />
+                  <Input
+                    id="postalCode"
+                    name="postalCode"
+                    value={form.postalCode}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
               </div>
             </CardContent>
@@ -290,36 +352,42 @@ export default function CheckoutPage() {
         </div>
 
         {/* Order Summary */}
-        <div className="lg:col-span-2">
-          <Card className="sticky top-24">
-            <CardHeader>
-              <CardTitle className="text-lg">Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <div className="lg:col-span-2 space-y-4 lg:sticky lg:top-24">
+          <div className="rounded-[20px] border border-black/10 bg-white p-5 text-left shadow-xs">
+            <h3 className="font-bold text-base text-black mb-3">Your Items ({items.length})</h3>
+            <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1 divide-y divide-black/5">
               {items.map((item) => (
-                <div key={item.variantId} className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
+                <div key={item.variantId} className="flex justify-between text-xs sm:text-sm pt-2 first:pt-0">
+                  <span className="text-black/70 truncate max-w-[180px]">
                     {item.name} &times; {item.quantity}
                   </span>
-                  <span>{formatPrice(item.lineTotal)}</span>
+                  <span className="font-semibold text-black tabular-nums">{formatPrice(item.lineTotal)}</span>
                 </div>
               ))}
-              <Separator />
-              <CartSummary subtotal={subtotal} />
-              {paypalEnabled ? (
-                <p className="text-sm text-muted-foreground">
-                  Complete your purchase with the PayPal button in the Payment
-                  section to the left.
-                </p>
-              ) : (
-                <Button type="submit" size="lg" className="w-full" disabled={loading}>
-                  {loading ? "Processing..." : "Place Demo Order"}
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+            <Separator />
+            <CartSummary subtotal={subtotal} />
+            {paypalEnabled ? (
+              <p className="text-sm text-muted-foreground">
+                Complete your purchase with the PayPal button in the Payment
+                section to the left.
+              </p>
+            ) : (
+              <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                {loading ? "Processing..." : "Place Demo Order"}
+              </Button>
+            )}
+          </div>
         </div>
       </form>
+
+      <AuthRequiredDialog
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+        redirectUrl="/checkout"
+        title="Sign In to Place Order"
+        description="Please sign in or create an account to finalize and place your order."
+      />
     </div>
   )
 }

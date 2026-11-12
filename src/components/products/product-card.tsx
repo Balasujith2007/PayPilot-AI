@@ -1,15 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useSyncExternalStore } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Heart } from "lucide-react"
+import { Heart, Package, Star } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { StarRating } from "@/components/products/star-rating"
 import { CompareToggleButton } from "@/components/compare/compare-toggle-button"
-import { formatPrice } from "@/lib/utils"
+import { cn, formatPrice } from "@/lib/utils"
 import { PLACEHOLDER_IMAGE } from "@/lib/constants"
 import { useWishlistStore } from "@/store/wishlist"
+import { useCartStore } from "@/store/cart"
 import { toast } from "sonner"
 import type { Product } from "@/types"
 
@@ -17,90 +18,161 @@ interface ProductCardProps {
   product: Product
 }
 
+const emptySubscribe = () => () => {}
+
 export function ProductCard({ product }: ProductCardProps) {
+  const [imageError, setImageError] = useState(false)
+  const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false)
+
+  const wishlistItems = useWishlistStore((s) => s.items)
+  const addToWishlist = useWishlistStore((s) => s.addItem)
+  const removeFromWishlist = useWishlistStore((s) => s.removeItem)
+  const addToCart = useCartStore((s) => s.addItem)
+
   const defaultVariant = product.variants[0]
   if (!defaultVariant) return null
 
   const price = defaultVariant.price
   const compareAtPrice = defaultVariant.compareAtPrice
-  const isOnSale = compareAtPrice && compareAtPrice > price
+  const isOnSale = Boolean(compareAtPrice && compareAtPrice > price)
+  const discountPercent =
+    isOnSale && compareAtPrice
+      ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
+      : null
+
   const image = product.images[0]
+  const isMissingImage =
+    !image?.url ||
+    image.url === "" ||
+    image.url.includes("placeholder.svg") ||
+    imageError
 
-  const wishlistItems = useWishlistStore((s) => s.items)
-  const addItem = useWishlistStore((s) => s.addItem)
-  const removeItem = useWishlistStore((s) => s.removeItem)
-
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-  const isWishlisted = mounted && wishlistItems.some((i) => i.productId === product.id)
+  const isWishlisted =
+    isClient && wishlistItems.some((i) => i.productId === product.id)
 
   function handleWishlist(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
     if (isWishlisted) {
-      removeItem(product.id)
+      removeFromWishlist(product.id)
       toast("Removed from wishlist")
     } else {
-      addItem({
+      addToWishlist({
         productId: product.id,
         name: product.name,
         slug: product.slug,
         price,
-        image: image ?? { url: PLACEHOLDER_IMAGE, alt: product.name },
+        image: image ?? { url: "", alt: product.name },
       })
       toast.success("Added to wishlist")
     }
   }
 
+  function handleQuickAdd(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    addToCart({
+      variantId: defaultVariant.id,
+      productId: product.id,
+      name: product.name,
+      variantName: defaultVariant.name,
+      image: image ?? { url: "", alt: product.name },
+      slug: product.slug,
+      price,
+      quantity: 1,
+    })
+    toast.success(`Added "${product.name}" to cart`)
+  }
+
   return (
-    <Link href={`/${product.slug}`} className="group">
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100">
-        <Image
-          src={image?.url ?? PLACEHOLDER_IMAGE}
-          alt={image?.alt ?? product.name}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-        />
-        {isOnSale && (
-          <Badge
-            variant="secondary"
-            className="absolute top-3 left-3 bg-white text-xs"
-          >
-            Sale
-          </Badge>
+    <Link
+      href={`/${product.slug}`}
+      className="group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-4 rounded-[20px] text-left"
+    >
+      {/* Square #F0EEED rounded-[20px] image tile */}
+      <div className="relative aspect-square w-full overflow-hidden rounded-[20px] bg-[#F0EEED]">
+        {isMissingImage ? (
+          <div className="flex h-full w-full items-center justify-center bg-[#F0EEED] transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-xs">
+              <Package className="h-8 w-8 text-black/40" />
+            </div>
+          </div>
+        ) : (
+          <Image
+            src={image.url}
+            alt={image.alt || product.name}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
+            onError={() => setImageError(true)}
+          />
         )}
+
+        {/* Wishlist toggle button (hover on desktop, always visible on touch) */}
         <button
+          type="button"
           onClick={handleWishlist}
-          className="absolute top-2 right-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm transition-opacity hover:bg-neutral-50 sm:opacity-0 sm:group-hover:opacity-100"
+          className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-xs transition-all duration-200 hover:scale-110 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
           aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
           <Heart
-            className={`h-4 w-4 ${isWishlisted ? "fill-current text-wishlist" : "text-neutral-600"}`}
+            className={cn(
+              "h-4 w-4 transition-colors",
+              isWishlisted
+                ? "fill-[#FF3333] text-[#FF3333]"
+                : "text-black/60 hover:text-black"
+            )}
           />
         </button>
         <CompareToggleButton product={product} className="absolute top-14 right-2 z-10" />
       </div>
-      <div className="mt-3">
-        <StarRating rating={product.rating} reviewCount={product.reviewCount} size="sm" />
-        <h3 className="mt-1 text-sm font-medium text-foreground group-hover:underline">
+
+      {/* Info */}
+      <div className="mt-3 flex flex-1 flex-col">
+        {/* Name */}
+        <h3 className="text-base sm:text-lg font-bold text-black line-clamp-1 transition-colors group-hover:text-black/70">
           {product.name}
         </h3>
-        <div className="mt-1 flex items-center gap-2">
-          <span className="text-sm font-medium">
+
+        {/* Yellow stars with "4.5/5" */}
+        <div className="mt-1 flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-0.5">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                className={cn(
+                  "h-3.5 w-3.5 sm:h-4 sm:w-4",
+                  star <= Math.floor(product.rating)
+                    ? "fill-[#FFC633] text-[#FFC633]"
+                    : star - 0.5 <= product.rating
+                      ? "fill-[#FFC633]/60 text-[#FFC633]"
+                      : "fill-none text-neutral-300"
+                )}
+              />
+            ))}
+          </div>
+          <span className="text-xs sm:text-sm font-normal text-black">
+            <span className="font-semibold text-black">{product.rating}</span>
+            <span className="text-black/70">/5</span>
+          </span>
+        </div>
+
+        {/* Bold ₹ price, struck original price, and pink -20% pill */}
+        <div className="mt-1.5 flex items-center gap-2.5 flex-wrap">
+          <span className="text-lg sm:text-xl font-bold text-black tracking-tight">
             {formatPrice(price, defaultVariant.currency)}
           </span>
-          {isOnSale && (
-            <span className="text-xs text-muted-foreground line-through">
+          {isOnSale && compareAtPrice && (
+            <span className="text-sm sm:text-base font-semibold text-black/60 line-through">
               {formatPrice(compareAtPrice, defaultVariant.currency)}
             </span>
           )}
+          {discountPercent && discountPercent > 0 && (
+            <span className="rounded-full bg-[#FFEBEB] px-2.5 py-0.5 text-xs font-bold text-[#FF3333]">
+              -{discountPercent}%
+            </span>
+          )}
         </div>
-        {product.variants.length > 1 && (
-          <p className="mt-1 text-xs text-muted-foreground">
-            {product.variants.length} options
-          </p>
-        )}
       </div>
     </Link>
   )
