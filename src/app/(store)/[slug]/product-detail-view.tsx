@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { useCartStore } from "@/store/cart"
 import { useWishlistStore } from "@/store/wishlist"
 import { useRecentlyViewedStore } from "@/store/recently-viewed"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { RecentlyViewed } from "@/components/products/recently-viewed"
 import { ProductGallery } from "@/components/products/product-gallery"
 import { VariantSelector } from "@/components/products/variant-selector"
@@ -60,11 +61,7 @@ export function ProductDetailView({
   const removeFromWishlist = useWishlistStore((s) => s.removeItem)
   const addRecentlyViewed = useRecentlyViewedStore((s) => s.addItem)
 
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    const id = window.requestAnimationFrame(() => setMounted(true))
-    return () => window.cancelAnimationFrame(id)
-  }, [])
+  const mounted = useHydrated()
 
   const isWishlisted = mounted && wishlistItems.some((i) => i.productId === product.id)
 

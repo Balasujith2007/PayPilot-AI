@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useCartStore } from "@/store/cart"
 import { useOrdersStore } from "@/store/orders"
@@ -14,6 +13,7 @@ import { useAuthStore } from "@/store/auth"
 import { useCouponStore } from "@/store/coupons"
 import { CartSummary } from "@/components/cart/cart-summary"
 import { AuthRequiredDialog } from "@/components/auth/auth-required-dialog"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { formatPrice } from "@/lib/utils"
 import { toast } from "sonner"
 import { siteConfig } from "@/lib/config"
@@ -32,7 +32,7 @@ export default function CheckoutPage() {
   const login = useAuthStore((s) => s.login)
   const calculateDiscount = useCouponStore((s) => s.calculateDiscount)
 
-  const [mounted, setMounted] = useState(false)
+  const mounted = useHydrated()
   const [loading, setLoading] = useState(false)
   const [authDialogOpen, setAuthDialogOpen] = useState(false)
 
@@ -47,11 +47,6 @@ export default function CheckoutPage() {
     postalCode: "",
     country: "US",
   })
-
-  useEffect(() => {
-    const id = window.requestAnimationFrame(() => setMounted(true))
-    return () => window.cancelAnimationFrame(id)
-  }, [])
 
   // Autofill user details when authenticated
   useEffect(() => {

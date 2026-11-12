@@ -1,25 +1,21 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Package, Clock, User, Calendar, RefreshCw } from "lucide-react"
+import { Package, User, Calendar } from "lucide-react"
 import { PageHeader } from "@/components/ui/page-header"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Card, CardContent } from "@/components/ui/card"
 import { OrderStatusBadge } from "@/components/ui/order-status-badge"
 import { useOrdersStore } from "@/store/orders"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { formatPrice, formatDate } from "@/lib/utils"
 import type { OrderStatus } from "@/types"
 import { toast } from "sonner"
 
 export default function AdminOrdersPage() {
-  const [mounted, setMounted] = useState(false)
+  const mounted = useHydrated()
   const orders = useOrdersStore((s) => s.orders) || []
   const updateOrderStatus = useOrdersStore((s) => s.updateOrderStatus)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   if (!mounted) {
     return (
