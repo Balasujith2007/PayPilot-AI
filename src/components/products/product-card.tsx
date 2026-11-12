@@ -121,7 +121,6 @@ export function ProductCard({ product }: ProductCardProps) {
             )}
           />
         </button>
-
         {/* Compare toggle button */}
         <CompareToggleButton product={product} className="absolute top-14 right-2 z-10" />
 

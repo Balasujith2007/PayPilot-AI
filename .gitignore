@@ -49,3 +49,5 @@ next-env.d.ts
 
 # audit artifacts
 audit-screenshots/
+
+/src/generated/prisma

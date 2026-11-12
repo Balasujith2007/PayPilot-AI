@@ -1,0 +1,363 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// User & Authentication (Demo-only - not production-ready)
+// ============================================================================
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  firstName     String
+  lastName      String
+  role          UserRole @default(CUSTOMER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  addresses     Address[]
+  orders        Order[]
+
+  @@index([email])
+}
+
+// ============================================================================
+// Addresses
+// ============================================================================
+
+enum AddressType {
+  SHIPPING
+  BILLING
+}
+
+model Address {
+  id        String     @id @default(cuid())
+  type      AddressType
+  firstName String
+  lastName  String
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  postalCode String
+  country   String
+  phone     String?
+  isDefault Boolean    @default(false)
+  userId    String?
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================================================
+// Brand
+// ============================================================================
+
+model Brand {
+  id          String   @id
+  name        String
+  slug        String   @unique
+  description String
+  products    Product[]
+
+  @@index([slug])
+}
+
+// ============================================================================
+// Category
+// ============================================================================
+
+model Category {
+  id          String     @id
+  name        String
+  slug        String     @unique
+  description String
+  image       Json?
+  parentId    String?
+  order       Int        @default(0)
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  products    Product[]  @relation("ProductCategories")
+
+  @@index([slug])
+  @@index([parentId])
+}
+
+// ============================================================================
+// Product
+// ============================================================================
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+model Product {
+  id              String         @id
+  name            String
+  slug            String         @unique
+  description     String
+  body            String?        @db.Text
+  images          Json
+  status          ProductStatus @default(ACTIVE)
+  brandId         String
+  tags            String[]
+  rating          Float          @default(0)
+  reviewCount     Int            @default(0)
+  featured        Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  brand           Brand          @relation(fields: [brandId], references: [id])
+  categories      Category[]     @relation("ProductCategories")
+  variants        ProductVariant[]
+  orderItems      OrderItem[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([brandId])
+  @@index([featured])
+}
+
+// ============================================================================
+// Product Variant
+// ============================================================================
+
+model ProductVariant {
+  id            String   @id
+  productId     String
+  sku           String   @unique
+  name          String
+  price         Int      // cents
+  compareAtPrice Int?    // cents
+  currency      String   @default("USD")
+  quantity      Int      @default(0)
+  trackInventory Boolean @default(true)
+  allowBackorder Boolean @default(false)
+  options       Json
+  images        Json
+  weight        Float?
+  length        Float?
+  width         Float?
+  height        Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems    OrderItem[]
+
+  @@index([productId])
+  @@index([sku])
+}
+
+// ============================================================================
+// CMS Pages
+// ============================================================================
+
+model CmsPage {
+  id          String   @id
+  title       String
+  slug        String   @unique
+  excerpt     String?
+  body        String   @db.Text
+  publishedAt DateTime
+  updatedAt   DateTime?
+
+  @@index([slug])
+}
+
+// ============================================================================
+// Blog Posts
+// ============================================================================
+
+model BlogPost {
+  id          String   @id
+  title       String
+  slug        String   @unique
+  excerpt     String
+  body        String   @db.Text
+  author      String
+  tags        String[]
+  coverImage  Json?
+  publishedAt DateTime
+  updatedAt   DateTime?
+
+  @@index([slug])
+  @@index([publishedAt])
+}
+
+// ============================================================================
+// Orders
+// ============================================================================
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CARD
+  PAYPAL
+  BANK_TRANSFER
+  WALLET
+  OTHER
+}
+
+model Order {
+  id               String        @id
+  orderNumber      String        @unique
+  userId           String?
+  status           OrderStatus   @default(PENDING)
+  paymentStatus    PaymentStatus @default(PENDING)
+  paymentMethod    PaymentMethod?
+  paymentReference String?       @unique // PayPal capture id or transaction id
+  paypalOrderId    String?       @unique // PayPal order id
+  subtotal         Int           // cents
+  tax              Int           // cents
+  shipping         Int           // cents
+  total            Int           // cents
+  currency         String        @default("USD")
+  customerEmail    String
+  customerName     String
+  shippingAddress  Json
+  billingAddress   Json?
+  completedAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  user             User?         @relation(fields: [userId], references: [id])
+  items            OrderItem[]
+
+  @@index([orderNumber])
+  @@index([userId])
+  @@index([customerEmail])
+  @@index([paymentReference])
+  @@index([paypalOrderId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id          String   @id
+  orderId     String
+  productId   String
+  variantId   String
+  name        String
+  variantName String
+  sku         String
+  image       Json
+  price       Int      // cents
+  quantity    Int
+  total       Int      // cents
+  createdAt   DateTime @default(now())
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id])
+  variant     ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+// ============================================================================
+// AI Cart Proposals (Task 19)
+// ============================================================================
+
+enum ProposalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum ProposalOutcome {
+  PENDING
+  APPLIED
+  REJECTED_BY_USER
+  VALIDATION_FAILED
+  EXPIRED
+}
+
+model CartProposal {
+  id            String          @id @default(cuid())
+  status        ProposalStatus  @default(PENDING)
+  outcome       ProposalOutcome @default(PENDING)
+  action        String          @default("add_to_cart")
+  currency      String          @default("USD")
+  items         Json            // CartProposalLine[]
+  rejected      Json?           // CartProposalRejection[]
+  summary       Json            // CartProposalSummary
+  note          String?
+  decidedAt     DateTime?
+  reason        String?
+  expiresAt     DateTime
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([id])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// PayPal Checkout Records (Task 20)
+// ============================================================================
+
+enum PaypalCheckoutStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model PaypalCheckout {
+  id             String               @id @default(cuid())
+  reference      String               @unique
+  status         PaypalCheckoutStatus @default(PENDING)
+  currency       String               @default("USD")
+  amounts        Json                 // PaypalCheckoutAmounts
+  lines          Json                 // PaypalCheckoutLine[]
+  customerEmail  String?
+  customerName   String?
+  userId         String?
+  shippingAddress Json?
+  paypalOrderId  String?              @unique
+  captureId      String?              @unique
+  failureReason  String?
+  createdAt      DateTime             @default(now())
+  expiresAt      DateTime
+  capturedAt     DateTime?
+
+  @@index([reference])
+  @@index([paypalOrderId])
+  @@index([captureId])
+  @@index([status])
+  @@index([expiresAt])
+}
+

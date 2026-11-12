@@ -88,16 +88,16 @@
       "description": "Premium wireless headphones with active noise cancellation, 30-hour battery life, and ultra-comfortable memory foam ear cushions.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Wireless headphones front view",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         },
         {
-          "url": "https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Wireless headphones side view",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -116,9 +116,9 @@
           "productId": "prod-1",
           "sku": "WH-BLK-001",
           "name": "Black",
-          "price": 799900,
-          "compareAtPrice": 999900,
-          "currency": "INR",
+          "price": 7999,
+          "compareAtPrice": 9999,
+          "currency": "USD",
           "inventory": {
             "quantity": 50,
             "trackInventory": true,
@@ -137,9 +137,9 @@
           "productId": "prod-1",
           "sku": "WH-WHT-001",
           "name": "White",
-          "price": 799900,
-          "compareAtPrice": 999900,
-          "currency": "INR",
+          "price": 7999,
+          "compareAtPrice": 9999,
+          "currency": "USD",
           "inventory": {
             "quantity": 35,
             "trackInventory": true,
@@ -169,10 +169,10 @@
       "description": "A clean, adjustable LED desk lamp with three brightness levels and a warm-to-cool color temperature dial. Solid aluminum construction.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Desk lamp on workspace",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -190,8 +190,8 @@
           "productId": "prod-2",
           "sku": "DL-SLV-001",
           "name": "Silver",
-          "price": 349900,
-          "currency": "INR",
+          "price": 4500,
+          "currency": "USD",
           "inventory": {
             "quantity": 25,
             "trackInventory": true,
@@ -210,8 +210,8 @@
           "productId": "prod-2",
           "sku": "DL-BLK-001",
           "name": "Matte Black",
-          "price": 349900,
-          "currency": "INR",
+          "price": 4500,
+          "currency": "USD",
           "inventory": {
             "quantity": 18,
             "trackInventory": true,
@@ -241,10 +241,10 @@
       "description": "Heavyweight 100% organic cotton tee with a relaxed fit. Pre-shrunk and garment-dyed for a lived-in feel from day one.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Cotton t-shirt front",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -262,8 +262,8 @@
           "productId": "prod-3",
           "sku": "TS-WHT-S",
           "name": "White / S",
-          "price": 129900,
-          "currency": "INR",
+          "price": 2999,
+          "currency": "USD",
           "inventory": {
             "quantity": 100,
             "trackInventory": true,
@@ -279,16 +279,15 @@
               "value": "S"
             }
           ],
-          "images": [],
-          "compareAtPrice": 169900
+          "images": []
         },
         {
           "id": "var-3-2",
           "productId": "prod-3",
           "sku": "TS-WHT-M",
           "name": "White / M",
-          "price": 129900,
-          "currency": "INR",
+          "price": 2999,
+          "currency": "USD",
           "inventory": {
             "quantity": 80,
             "trackInventory": true,
@@ -304,16 +303,15 @@
               "value": "M"
             }
           ],
-          "images": [],
-          "compareAtPrice": 169900
+          "images": []
         },
         {
           "id": "var-3-3",
           "productId": "prod-3",
           "sku": "TS-WHT-L",
           "name": "White / L",
-          "price": 129900,
-          "currency": "INR",
+          "price": 2999,
+          "currency": "USD",
           "inventory": {
             "quantity": 60,
             "trackInventory": true,
@@ -329,16 +327,15 @@
               "value": "L"
             }
           ],
-          "images": [],
-          "compareAtPrice": 169900
+          "images": []
         },
         {
           "id": "var-3-4",
           "productId": "prod-3",
           "sku": "TS-BLK-M",
           "name": "Black / M",
-          "price": 129900,
-          "currency": "INR",
+          "price": 2999,
+          "currency": "USD",
           "inventory": {
             "quantity": 70,
             "trackInventory": true,
@@ -354,8 +351,7 @@
               "value": "M"
             }
           ],
-          "images": [],
-          "compareAtPrice": 169900
+          "images": []
         }
       ],
       "featured": true,
@@ -373,10 +369,10 @@
       "description": "Handcrafted ceramic dripper with a walnut wood collar. Brews a clean, bright cup. Includes a reusable stainless steel filter.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Pour-over coffee maker",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -395,8 +391,8 @@
           "productId": "prod-4",
           "sku": "PO-WHT-001",
           "name": "Default",
-          "price": 249900,
-          "currency": "INR",
+          "price": 3800,
+          "currency": "USD",
           "inventory": {
             "quantity": 40,
             "trackInventory": true,
@@ -420,16 +416,16 @@
       "description": "Full-grain vegetable-tanned leather passport wallet. Fits a passport, 4 cards, and boarding passes. Ages beautifully over time.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Leather wallet closed",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         },
         {
-          "url": "https://images.unsplash.com/photo-1559563458-527698bf5295?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Leather wallet open",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -447,8 +443,8 @@
           "productId": "prod-5",
           "sku": "PW-TAN-001",
           "name": "Tan",
-          "price": 299900,
-          "currency": "INR",
+          "price": 5200,
+          "currency": "USD",
           "inventory": {
             "quantity": 30,
             "trackInventory": true,
@@ -460,16 +456,15 @@
               "value": "Tan"
             }
           ],
-          "images": [],
-          "compareAtPrice": 399900
+          "images": []
         },
         {
           "id": "var-5-2",
           "productId": "prod-5",
           "sku": "PW-BRN-001",
           "name": "Dark Brown",
-          "price": 299900,
-          "currency": "INR",
+          "price": 5200,
+          "currency": "USD",
           "inventory": {
             "quantity": 22,
             "trackInventory": true,
@@ -481,8 +476,7 @@
               "value": "Dark Brown"
             }
           ],
-          "images": [],
-          "compareAtPrice": 399900
+          "images": []
         }
       ],
       "featured": false,
@@ -499,10 +493,10 @@
       "description": "Ethically sourced single-origin beans from Colombia. Medium roast with notes of chocolate, caramel, and citrus. 12oz bag, whole bean.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Coffee beans bag",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -520,8 +514,8 @@
           "productId": "prod-6",
           "sku": "CB-12OZ-001",
           "name": "12oz Bag",
-          "price": 89900,
-          "currency": "INR",
+          "price": 1850,
+          "currency": "USD",
           "inventory": {
             "quantity": 200,
             "trackInventory": true,
@@ -540,8 +534,8 @@
           "productId": "prod-6",
           "sku": "CB-2LB-001",
           "name": "2lb Bag",
-          "price": 89900,
-          "currency": "INR",
+          "price": 3200,
+          "currency": "USD",
           "inventory": {
             "quantity": 80,
             "trackInventory": true,
@@ -570,10 +564,10 @@
       "description": "Waterproof portable speaker with 360-degree sound and 12-hour battery life. Compact enough for any adventure.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Bluetooth speaker",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -592,8 +586,8 @@
           "productId": "prod-7",
           "sku": "BS-BLK-001",
           "name": "Charcoal",
-          "price": 499900,
-          "currency": "INR",
+          "price": 5999,
+          "currency": "USD",
           "inventory": {
             "quantity": 45,
             "trackInventory": true,
@@ -605,16 +599,15 @@
               "value": "Charcoal"
             }
           ],
-          "images": [],
-          "compareAtPrice": 649900
+          "images": []
         },
         {
           "id": "var-7-2",
           "productId": "prod-7",
           "sku": "BS-GRN-001",
           "name": "Forest Green",
-          "price": 499900,
-          "currency": "INR",
+          "price": 5999,
+          "currency": "USD",
           "inventory": {
             "quantity": 30,
             "trackInventory": true,
@@ -626,8 +619,7 @@
               "value": "Forest Green"
             }
           ],
-          "images": [],
-          "compareAtPrice": 649900
+          "images": []
         }
       ],
       "featured": false,
@@ -644,10 +636,10 @@
       "description": "Stonewashed French linen cover with a feather-down insert. 20x20 inches. Removable, machine-washable cover.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Linen throw pillow",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -665,8 +657,8 @@
           "productId": "prod-8",
           "sku": "LP-NAT-001",
           "name": "Natural",
-          "price": 149900,
-          "currency": "INR",
+          "price": 3400,
+          "currency": "USD",
           "inventory": {
             "quantity": 60,
             "trackInventory": true,
@@ -685,8 +677,8 @@
           "productId": "prod-8",
           "sku": "LP-SLT-001",
           "name": "Slate",
-          "price": 149900,
-          "currency": "INR",
+          "price": 3400,
+          "currency": "USD",
           "inventory": {
             "quantity": 40,
             "trackInventory": true,
@@ -715,10 +707,10 @@
       "description": "Waxed canvas weekender with leather handles and brass hardware. Separate shoe compartment. Fits overhead bins.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Canvas weekender bag",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -736,8 +728,8 @@
           "productId": "prod-9",
           "sku": "WB-OLV-001",
           "name": "Olive",
-          "price": 599900,
-          "currency": "INR",
+          "price": 8900,
+          "currency": "USD",
           "inventory": {
             "quantity": 15,
             "trackInventory": true,
@@ -749,8 +741,7 @@
               "value": "Olive"
             }
           ],
-          "images": [],
-          "compareAtPrice": 799900
+          "images": []
         }
       ],
       "featured": true,
@@ -767,10 +758,10 @@
       "description": "192 pages of 100gsm acid-free paper with a dot grid pattern. Lay-flat binding, ribbon bookmark, and elastic closure.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Dot grid notebook",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -788,8 +779,8 @@
           "productId": "prod-10",
           "sku": "NB-BLK-A5",
           "name": "Black / A5",
-          "price": 79900,
-          "currency": "INR",
+          "price": 2200,
+          "currency": "USD",
           "inventory": {
             "quantity": 150,
             "trackInventory": true,
@@ -812,8 +803,8 @@
           "productId": "prod-10",
           "sku": "NB-NVY-A5",
           "name": "Navy / A5",
-          "price": 79900,
-          "currency": "INR",
+          "price": 2200,
+          "currency": "USD",
           "inventory": {
             "quantity": 90,
             "trackInventory": true,
@@ -846,10 +837,10 @@
       "description": "Extra-fine merino wool beanie. Soft, breathable, and itch-free. Double-layered for warmth without bulk.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Merino wool beanie",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -868,8 +859,8 @@
           "productId": "prod-11",
           "sku": "BN-CHR-001",
           "name": "Charcoal",
-          "price": 189900,
-          "currency": "INR",
+          "price": 3500,
+          "currency": "USD",
           "inventory": {
             "quantity": 75,
             "trackInventory": true,
@@ -881,16 +872,15 @@
               "value": "Charcoal"
             }
           ],
-          "images": [],
-          "compareAtPrice": 249900
+          "images": []
         },
         {
           "id": "var-11-2",
           "productId": "prod-11",
           "sku": "BN-CRM-001",
           "name": "Cream",
-          "price": 189900,
-          "currency": "INR",
+          "price": 3500,
+          "currency": "USD",
           "inventory": {
             "quantity": 55,
             "trackInventory": true,
@@ -902,8 +892,7 @@
               "value": "Cream"
             }
           ],
-          "images": [],
-          "compareAtPrice": 249900
+          "images": []
         }
       ],
       "featured": false,
@@ -920,10 +909,10 @@
       "description": "100% natural soy wax candle in a reusable ceramic vessel. 60-hour burn time. Available in three signature scents.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Soy candle",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -941,8 +930,8 @@
           "productId": "prod-12",
           "sku": "SC-CED-001",
           "name": "Cedar & Sage",
-          "price": 119900,
-          "currency": "INR",
+          "price": 2800,
+          "currency": "USD",
           "inventory": {
             "quantity": 90,
             "trackInventory": true,
@@ -961,8 +950,8 @@
           "productId": "prod-12",
           "sku": "SC-LVN-001",
           "name": "Lavender & Eucalyptus",
-          "price": 119900,
-          "currency": "INR",
+          "price": 2800,
+          "currency": "USD",
           "inventory": {
             "quantity": 65,
             "trackInventory": true,
@@ -981,8 +970,8 @@
           "productId": "prod-12",
           "sku": "SC-VNL-001",
           "name": "Vanilla & Tonka",
-          "price": 119900,
-          "currency": "INR",
+          "price": 2800,
+          "currency": "USD",
           "inventory": {
             "quantity": 80,
             "trackInventory": true,
@@ -1011,10 +1000,10 @@
       "description": "Traditional matcha preparation set with a ceramic bowl (chawan), bamboo whisk (chasen), and bamboo scoop (chashaku). Includes 30g ceremonial grade matcha.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Matcha set",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -1033,8 +1022,8 @@
           "productId": "prod-13",
           "sku": "MS-SET-001",
           "name": "Default",
-          "price": 329900,
-          "currency": "INR",
+          "price": 4200,
+          "currency": "USD",
           "inventory": {
             "quantity": 20,
             "trackInventory": true,
@@ -1058,10 +1047,10 @@
       "description": "Slim 15W fast wireless charger compatible with all Qi-enabled devices. Non-slip silicone surface, LED indicator, and built-in safety features.",
       "images": [
         {
-          "url": "https://images.unsplash.com/photo-1586953208448-b95a79798f07?auto=format&fit=crop&w=1000&q=80",
+          "url": "/images/products/placeholder.svg",
           "alt": "Wireless charging pad",
-          "width": 1000,
-          "height": 1000
+          "width": 800,
+          "height": 800
         }
       ],
       "status": "active",
@@ -1080,8 +1069,8 @@
           "productId": "prod-14",
           "sku": "WC-BLK-001",
           "name": "Black",
-          "price": 219900,
-          "currency": "INR",
+          "price": 2499,
+          "currency": "USD",
           "inventory": {
             "quantity": 120,
             "trackInventory": true,
@@ -1093,16 +1082,15 @@
               "value": "Black"
             }
           ],
-          "images": [],
-          "compareAtPrice": 289900
+          "images": []
         },
         {
           "id": "var-14-2",
           "productId": "prod-14",
           "sku": "WC-WHT-001",
           "name": "White",
-          "price": 219900,
-          "currency": "INR",
+          "price": 2499,
+          "currency": "USD",
           "inventory": {
             "quantity": 85,
             "trackInventory": true,
@@ -1114,8 +1102,7 @@
               "value": "White"
             }
           ],
-          "images": [],
-          "compareAtPrice": 289900
+          "images": []
         }
       ],
       "featured": false,
