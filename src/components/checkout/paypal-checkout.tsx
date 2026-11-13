@@ -251,7 +251,14 @@ export function PaypalCheckoutButton({ config, customer }: PaypalCheckoutButtonP
             })
           },
 
-          onError: () => {
+          onError: (err: unknown) => {
+            const safeErrorMessage =
+              err instanceof Error
+                ? err.message
+                : typeof err === "object" && err !== null
+                  ? JSON.stringify(err)
+                  : String(err ?? "Unknown PayPal SDK error")
+            console.error("[PayPal SDK] Checkout error:", safeErrorMessage)
             setError(
               "The PayPal window could not be completed. Nothing was charged — please try again."
             )

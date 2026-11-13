@@ -178,6 +178,156 @@ export class JsonOrderRepository implements OrderRepository {
       all.unshift(newOrder)
       await this.writeAll(all)
 
+      // Sync to Neon PostgreSQL if DATABASE_URL is configured
+      if (process.env.DATABASE_URL) {
+        try {
+          const { prisma } = await import("@/lib/db/prisma")
+          
+          // Verify user exists if userId was provided to prevent FK violation
+          let validUserId: string | null = null
+          if (newOrder.userId) {
+            const userExists = await prisma.user.findUnique({ where: { id: newOrder.userId } }).catch(() => null)
+            if (userExists) validUserId = userExists.id
+          }
+
+          const statusMap: Record<string, "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED"> = {
+            pending: "PENDING",
+            processing: "PROCESSING",
+            shipped: "SHIPPED",
+            delivered: "DELIVERED",
+            cancelled: "CANCELLED",
+            refunded: "REFUNDED",
+          }
+
+          const paymentStatusMap: Record<string, "PENDING" | "AUTHORIZED" | "CAPTURED" | "FAILED" | "REFUNDED"> = {
+            pending: "PENDING",
+            authorized: "AUTHORIZED",
+            captured: "CAPTURED",
+            failed: "FAILED",
+            refunded: "REFUNDED",
+          }
+
+          const paymentMethodMap: Record<string, "CARD" | "PAYPAL" | "BANK_TRANSFER" | "WALLET" | "OTHER"> = {
+            card: "CARD",
+            paypal: "PAYPAL",
+            bank_transfer: "BANK_TRANSFER",
+            wallet: "WALLET",
+            other: "OTHER",
+          }
+
+          const dbStatus = statusMap[newOrder.status?.toLowerCase()] || "PENDING"
+          const dbPaymentStatus = paymentStatusMap[newOrder.paymentStatus?.toLowerCase()] || "PENDING"
+          const dbPaymentMethod = newOrder.paymentMethod ? (paymentMethodMap[newOrder.paymentMethod.toLowerCase()] || "OTHER") : null
+
+          const toJson = (val: unknown) => JSON.parse(JSON.stringify(val ?? {}))
+          const shippingAddressJson = toJson(newOrder.shippingAddress)
+          const billingAddressJson = newOrder.billingAddress ? toJson(newOrder.billingAddress) : null
+
+          // Check if an order already exists in Neon by ID, orderNumber, or paymentReference
+          const existingDbOrder = await prisma.order
+            .findFirst({
+              where: {
+                OR: [
+                  { id: newOrder.id },
+                  { orderNumber: newOrder.orderNumber },
+                  ...(newOrder.paymentReference ? [{ paymentReference: newOrder.paymentReference }] : []),
+                  ...(newOrder.paypalOrderId ? [{ paypalOrderId: newOrder.paypalOrderId }] : []),
+                ],
+              },
+            })
+            .catch(() => null)
+
+          const targetId = existingDbOrder ? existingDbOrder.id : newOrder.id
+
+          await prisma.order.upsert({
+            where: { id: targetId },
+            update: {
+              orderNumber: newOrder.orderNumber,
+              userId: validUserId,
+              status: dbStatus,
+              paymentStatus: dbPaymentStatus,
+              paymentMethod: dbPaymentMethod,
+              paymentReference: newOrder.paymentReference ?? null,
+              paypalOrderId: newOrder.paypalOrderId ?? null,
+              subtotal: newOrder.subtotal,
+              tax: newOrder.tax,
+              shipping: newOrder.shipping,
+              total: newOrder.total,
+              currency: newOrder.currency ?? "USD",
+              customerEmail: newOrder.customerEmail ?? "",
+              customerName: newOrder.customerName ?? "",
+              shippingAddress: shippingAddressJson,
+              billingAddress: billingAddressJson,
+              completedAt: newOrder.completedAt ? new Date(newOrder.completedAt) : null,
+              updatedAt: new Date(),
+            },
+            create: {
+              id: targetId,
+              orderNumber: newOrder.orderNumber,
+              userId: validUserId,
+              status: dbStatus,
+              paymentStatus: dbPaymentStatus,
+              paymentMethod: dbPaymentMethod,
+              paymentReference: newOrder.paymentReference ?? null,
+              paypalOrderId: newOrder.paypalOrderId ?? null,
+              subtotal: newOrder.subtotal,
+              tax: newOrder.tax,
+              shipping: newOrder.shipping,
+              total: newOrder.total,
+              currency: newOrder.currency ?? "USD",
+              customerEmail: newOrder.customerEmail ?? "",
+              customerName: newOrder.customerName ?? "",
+              shippingAddress: shippingAddressJson,
+              billingAddress: billingAddressJson,
+              completedAt: newOrder.completedAt ? new Date(newOrder.completedAt) : null,
+              createdAt: newOrder.createdAt ? new Date(newOrder.createdAt) : new Date(),
+              updatedAt: newOrder.updatedAt ? new Date(newOrder.updatedAt) : new Date(),
+            },
+          })
+
+          // Upsert items (only if the product and variant exist in DB to satisfy foreign keys)
+          for (const it of newOrder.items || []) {
+            const variantExists = await prisma.productVariant
+              .findUnique({ where: { id: it.variantId } })
+              .catch(() => null)
+            if (!variantExists) continue
+
+            const itemId = it.id || `item_${targetId}_${it.variantId}`
+            const itemImageJson = toJson(it.image)
+            await prisma.orderItem.upsert({
+              where: { id: itemId },
+              update: {
+                orderId: targetId,
+                productId: it.productId,
+                variantId: it.variantId,
+                name: it.name,
+                variantName: it.variantName || "",
+                sku: it.sku || "",
+                image: itemImageJson,
+                price: it.price,
+                quantity: it.quantity,
+                total: it.total,
+              },
+              create: {
+                id: itemId,
+                orderId: targetId,
+                productId: it.productId,
+                variantId: it.variantId,
+                name: it.name,
+                variantName: it.variantName || "",
+                sku: it.sku || "",
+                image: itemImageJson,
+                price: it.price,
+                quantity: it.quantity,
+                total: it.total,
+              },
+            }).catch(() => {})
+          }
+        } catch (dbErr) {
+          console.warn("Could not sync order to Neon DB:", dbErr)
+        }
+      }
+
       return newOrder
     })
   }
