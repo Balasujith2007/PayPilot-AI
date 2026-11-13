@@ -1,16 +1,15 @@
 "use client"
 
-import { useState, useSyncExternalStore } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Heart, Package, Star } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { StarRating } from "@/components/products/star-rating"
+import { Heart, Package, ShoppingBag, Star } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { CompareToggleButton } from "@/components/compare/compare-toggle-button"
-import { cn, formatPrice } from "@/lib/utils"
-import { PLACEHOLDER_IMAGE } from "@/lib/constants"
+import { formatPrice, cn } from "@/lib/utils"
 import { useWishlistStore } from "@/store/wishlist"
 import { useCartStore } from "@/store/cart"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { toast } from "sonner"
 import type { Product } from "@/types"
 
@@ -18,11 +17,9 @@ interface ProductCardProps {
   product: Product
 }
 
-const emptySubscribe = () => () => {}
-
 export function ProductCard({ product }: ProductCardProps) {
   const [imageError, setImageError] = useState(false)
-  const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false)
+  const isClient = useHydrated()
 
   const wishlistItems = useWishlistStore((s) => s.items)
   const addToWishlist = useWishlistStore((s) => s.addItem)
@@ -46,6 +43,11 @@ export function ProductCard({ product }: ProductCardProps) {
     image.url === "" ||
     image.url.includes("placeholder.svg") ||
     imageError
+
+  // Real-time stock status across variants
+  const totalStock = product.variants.reduce((acc, v) => acc + (v.inventory?.quantity ?? 10), 0)
+  const isOutOfStock = totalStock === 0
+  const isLowStock = !isOutOfStock && totalStock <= 5
 
   const isWishlisted =
     isClient && wishlistItems.some((i) => i.productId === product.id)
@@ -102,11 +104,29 @@ export function ProductCard({ product }: ProductCardProps) {
             src={image.url}
             alt={image.alt || product.name}
             fill
+            unoptimized={Boolean(image.url?.startsWith("data:") || image.url?.startsWith("http"))}
             className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
             onError={() => setImageError(true)}
           />
         )}
+
+        {/* Stock & Discount Badges */}
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
+          {isOutOfStock ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white shadow-xs">
+              Out of Stock
+            </span>
+          ) : isLowStock ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 text-white shadow-xs">
+              Only {totalStock} Left
+            </span>
+          ) : discountPercent ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-black text-white shadow-xs">
+              -{discountPercent}%
+            </span>
+          ) : null}
+        </div>
 
         {/* Wishlist toggle button (hover on desktop, always visible on touch) */}
         <button
@@ -124,7 +144,27 @@ export function ProductCard({ product }: ProductCardProps) {
             )}
           />
         </button>
+        {/* Compare toggle button */}
         <CompareToggleButton product={product} className="absolute top-14 right-2 z-10" />
+
+        {/* Quick add button (slides up on hover, always visible on touch) */}
+        <div className="product-quick-add absolute inset-x-3 bottom-3 z-10">
+          <Button
+            type="button"
+            size="sm"
+            disabled={isOutOfStock}
+            onClick={handleQuickAdd}
+            className={cn(
+              "w-full gap-2 rounded-full text-xs font-semibold shadow-md focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-1",
+              isOutOfStock
+                ? "bg-zinc-300 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-500 cursor-not-allowed"
+                : "bg-black text-white hover:bg-black/85"
+            )}
+          >
+            <ShoppingBag className="h-3.5 w-3.5" />
+            {isOutOfStock ? "Sold Out" : "Quick add"}
+          </Button>
+        </div>
       </div>
 
       {/* Info */}

@@ -117,6 +117,7 @@ export function ComparisonTable({ products, reasons = {} }: ComparisonTableProps
                           src={product.image.url}
                           alt={product.image.alt || product.name}
                           fill
+                          unoptimized={Boolean(product.image.url?.startsWith("data:") || product.image.url?.startsWith("http"))}
                           sizes="112px"
                           className="object-cover"
                         />

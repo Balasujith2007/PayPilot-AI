@@ -1,22 +1,17 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ChevronRight, ShoppingBag } from "lucide-react"
 import { useCartStore } from "@/store/cart"
 import { CartItem } from "@/components/cart/cart-item"
 import { CartSummary } from "@/components/cart/cart-summary"
 import { Reveal } from "@/components/home/reveal"
+import { useHydrated } from "@/hooks/use-hydrated"
 
 export default function CartPage() {
   const items = useCartStore((s) => s.items)
   const getSubtotal = useCartStore((s) => s.getSubtotal)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    const id = window.requestAnimationFrame(() => setMounted(true))
-    return () => window.cancelAnimationFrame(id)
-  }, [])
+  const mounted = useHydrated()
 
   if (!mounted) {
     return (

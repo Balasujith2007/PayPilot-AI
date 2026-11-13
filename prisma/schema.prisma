@@ -145,6 +145,10 @@ model ProductVariant {
   compareAtPrice Int?    // cents
   currency      String   @default("USD")
   quantity      Int      @default(0)
+  safetyStock   Int      @default(5)
+  reorderQuantity Int    @default(25)
+  supplierCost  Int?     // cents/paise
+  supplierName  String?  @default("PayPilot Primary Supplier")
   trackInventory Boolean @default(true)
   allowBackorder Boolean @default(false)
   options       Json
@@ -158,6 +162,7 @@ model ProductVariant {
 
   product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   orderItems    OrderItem[]
+  stockAdjustments StockAdjustmentLog[]
 
   @@index([productId])
   @@index([sku])
@@ -246,12 +251,16 @@ model Order {
   customerName     String
   shippingAddress  Json
   billingAddress   Json?
+  carrier          String?       // e.g. "Blue Dart", "Delhivery"
+  trackingNumber   String?       // AWB tracking number
   completedAt      DateTime?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
   user             User?         @relation(fields: [userId], references: [id])
   items            OrderItem[]
+  invoice          Invoice?
+  shipment         Shipment?
 
   @@index([orderNumber])
   @@index([userId])
@@ -360,4 +369,341 @@ model PaypalCheckout {
   @@index([status])
   @@index([expiresAt])
 }
+
+// ============================================================================
+// Coupons & Vouchers
+// ============================================================================
+
+model Coupon {
+  id                 String    @id @default(cuid())
+  code               String    @unique
+  title              String
+  description        String
+  discountType       String    // "fixed" or "percentage"
+  discountValue      Int       // cents/paise (50000 = ₹500, or 10 = 10%)
+  minOrderValue      Int?      // cents/paise (99900 = ₹999)
+  maxDiscountAmount  Int?      // cents/paise (max cap for percentage discounts)
+  firstPurchaseOnly  Boolean   @default(false)
+  targetScenario     String    @default("GENERAL") // "GENERAL" | "FIRST_PURCHASE" | "FESTIVAL_SPECIAL" | "CATEGORY_SPECIFIC" | "BRAND_SPECIFIC"
+  targetCategorySlug String?
+  targetBrandSlug    String?
+  isActive           Boolean   @default(true)
+  usageLimit         Int?
+  usedCount          Int       @default(0)
+  startDate          DateTime  @default(now())
+  expiresAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([code])
+  @@index([isActive])
+  @@index([targetScenario])
+}
+
+// ============================================================================
+// Flash Sales & Promotional Banners
+// ============================================================================
+
+model FlashSale {
+  id                 String    @id @default(cuid())
+  title              String
+  slug               String    @unique
+  description        String
+  discountType       String    @default("percentage") // "percentage" | "fixed"
+  discountValue      Int       // e.g. 25 = 25% or 50000 = ₹500
+  appliesTo          String    @default("STOREWIDE") // "STOREWIDE" | "CATEGORY" | "BRAND"
+  targetCategorySlug String?
+  targetBrandSlug    String?
+  bannerBadge        String    @default("FLASH SALE")
+  bannerHeadline     String
+  accentColor        String    @default("#FF3333")
+  startsAt           DateTime
+  endsAt             DateTime
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([isActive])
+  @@index([startsAt])
+  @@index([endsAt])
+}
+
+model PromotionalBanner {
+  id              String    @id @default(cuid())
+  title           String
+  message         String
+  promoCode       String?
+  linkText        String    @default("Shop Now")
+  linkUrl         String    @default("/shop")
+  badgeText       String    @default("FESTIVE OFFER")
+  backgroundColor String    @default("#000000")
+  textColor       String    @default("#FFFFFF")
+  isActive        Boolean   @default(true)
+  priority        Int       @default(0)
+  startsAt        DateTime  @default(now())
+  endsAt          DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([isActive])
+  @@index([priority])
+}
+
+// ============================================================================
+// Billing & Tax Invoices
+// ============================================================================
+
+enum InvoiceStatus {
+  ISSUED
+  PAID
+  VOID
+  REFUNDED
+}
+
+model Invoice {
+  id               String        @id @default(cuid())
+  invoiceNumber    String        @unique // e.g. INV-2026-0001
+  orderId          String        @unique
+  customerName     String
+  customerEmail    String
+  customerGstin    String?
+  storeGstin       String        @default("29AABCU9603R1Z7")
+  supplyState      String        @default("Karnataka")
+  placeOfSupply    String        // e.g. "Maharashtra", "Tamil Nadu"
+  isInterState     Boolean       @default(false)
+  hsnSummary       Json          // Array of { hsnCode, taxableAmount, igstRate, igstAmount, cgstRate, cgstAmount, sgstRate, sgstAmount }
+  subtotal         Int           // paise
+  cgstTotal        Int           @default(0) // paise
+  sgstTotal        Int           @default(0) // paise
+  igstTotal        Int           @default(0) // paise
+  discountTotal    Int           @default(0) // paise
+  couponCode       String?
+  total            Int           // paise
+  currency         String        @default("INR")
+  status           InvoiceStatus @default(ISSUED)
+  pdfUrl           String?
+  digitalSignature String        @default("Digitally Signed by PayPilot Technologies India Pvt Ltd")
+  issuedAt         DateTime      @default(now())
+  dueDate          DateTime?
+  paidAt           DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  order            Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceNumber])
+  @@index([orderId])
+  @@index([customerEmail])
+  @@index([status])
+}
+
+// ============================================================================
+// Payment Settlements & Gateway Reconciliation
+// ============================================================================
+
+enum SettlementStatus {
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+  RECONCILED
+}
+
+model PaymentSettlement {
+  id            String           @id @default(cuid())
+  orderId       String
+  orderNumber   String
+  gateway       String           // "Razorpay" | "PhonePe" | "Stripe" | "UPI" | "Cashfree"
+  gatewayTxnId  String           @unique // e.g. pay_N7xX12345678, T2603123456
+  amount        Int              // paise
+  currency      String           @default("INR")
+  fee           Int              @default(0) // gateway fee in paise
+  taxOnFee      Int              @default(0) // GST on gateway fee in paise
+  netPayout     Int              // amount - fee - taxOnFee in paise
+  status        SettlementStatus @default(CAPTURED)
+  paymentMethod String           // "UPI", "CREDIT_CARD", "NET_BANKING", "WALLET"
+  bankReference String?          // UTR or Bank RRN number
+  settledAt     DateTime?
+  failureReason String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([orderId])
+  @@index([gatewayTxnId])
+  @@index([status])
+  @@index([gateway])
+}
+
+// ============================================================================
+// Coupon Redemption & Expenditure Audit
+// ============================================================================
+
+model CouponRedemption {
+  id             String   @id @default(cuid())
+  couponCode     String
+  orderId        String
+  orderNumber    String
+  customerEmail  String
+  orderTotal     Int      // paise
+  discountAmount Int      // paise (how much user saved)
+  createdAt      DateTime @default(now())
+
+  @@index([couponCode])
+  @@index([orderId])
+}
+
+// ============================================================================
+// Shipping, Logistics & Delivery Operations
+// ============================================================================
+
+enum ShipmentStatus {
+  MANIFESTED
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  ATTEMPTED_FAILED
+  RTO
+  DELAYED
+}
+
+model Shipment {
+  id                    String         @id @default(cuid())
+  orderId               String         @unique
+  orderNumber           String
+  carrier               String         // "Blue Dart", "Delhivery", "Shadowfax", "DTDC", "India Post"
+  awbNumber             String         @unique // AWB Air Waybill tracking number
+  status                ShipmentStatus @default(MANIFESTED)
+  radarStatus           String         @default("ON_SCHEDULE") // "ON_SCHEDULE" | "DELAYED" | "ATTEMPTED" | "RTO" | "DELIVERED"
+  originCity            String         @default("Bengaluru")
+  destinationCity       String
+  destinationPincode    String
+  state                 String
+  weightGrams           Int            @default(500)
+  shippingCharge        Int            @default(0) // paise
+  serviceType           String         @default("STANDARD") // "STANDARD" | "EXPRESS" | "SAME_DAY"
+  estimatedDeliveryDate DateTime
+  actualDeliveryDate    DateTime?
+  delayReason           String?        // e.g. "Severe Rain / Highway Transit Delay"
+  lastCheckpoint        String?        // e.g. "Bengaluru Central Sort Facility"
+  checkpoints           Json           // Array of { status, location, timestamp, remarks }
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  order                 Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([orderNumber])
+  @@index([awbNumber])
+  @@index([carrier])
+  @@index([status])
+  @@index([radarStatus])
+  @@index([destinationPincode])
+}
+
+model DeliveryZone {
+  id                String   @id @default(cuid())
+  pincode           String   @unique
+  areaName          String
+  city              String
+  state             String
+  zoneType          String   @default("METRO") // "METRO", "TIER_1", "TIER_2", "REMOTE"
+  isServiceable     Boolean  @default(true)
+  codAvailable      Boolean  @default(true)
+  expressAvailable  Boolean  @default(true)
+  standardDays      Int      @default(3)
+  expressDays       Int      @default(1)
+  preferredPartner  String   @default("Blue Dart")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([pincode])
+  @@index([city])
+  @@index([state])
+  @@index([isServiceable])
+}
+
+model ShippingRule {
+  id                String   @id @default(cuid())
+  name              String
+  code              String   @unique // "STANDARD", "EXPRESS", "SAME_DAY"
+  description       String
+  baseFee           Int      // paise (e.g. 9900 = ₹99)
+  freeThreshold     Int?     // paise (e.g. 99900 = ₹999)
+  estimatedDaysMin  Int
+  estimatedDaysMax  Int
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([code])
+  @@index([isActive])
+}
+
+model LogisticsPartner {
+  id                  String   @id @default(cuid())
+  name                String   @unique // "Blue Dart", "Delhivery", "Shadowfax", "DTDC"
+  code                String   @unique
+  trackingUrlTemplate String
+  activeShipments     Int      @default(0)
+  deliveredShipments  Int      @default(0)
+  successRate         Float    @default(98.2) // percentage
+  avgDeliveryDays     Float    @default(2.4)
+  rating              Float    @default(4.8)
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([code])
+  @@index([isActive])
+}
+
+// ============================================================================
+// Inventory & Stock Health Monitoring
+// ============================================================================
+
+model StockAdjustmentLog {
+  id               String          @id @default(cuid())
+  variantId        String
+  sku              String
+  productTitle     String
+  variantName      String
+  previousQuantity Int
+  newQuantity      Int
+  changeAmount     Int             // e.g. +20, -1, -5
+  reason           String          // "RECEIVED_SHIPMENT" | "ORDER_FULFILLMENT" | "DAMAGE_LOSS" | "MANUAL_RECONCILIATION" | "RETURN_RESTOCK"
+  notes            String?
+  staffAuthor      String          @default("Balaganesh (Admin)")
+  createdAt        DateTime        @default(now())
+
+  variant          ProductVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([variantId])
+  @@index([sku])
+  @@index([createdAt])
+  @@index([reason])
+}
+
+model PurchaseOrderDraft {
+  id                   String    @id @default(cuid())
+  poNumber             String    @unique // e.g. "PO-2026-0101"
+  supplierName         String
+  status               String    @default("DRAFT") // "DRAFT" | "SUBMITTED" | "RECEIVED" | "CANCELLED"
+  items                Json      // Array of { variantId, sku, name, productTitle, currentStock, suggestedQuantity, unitCost, totalCost }
+  totalItems           Int
+  totalCost            Int       // paise
+  expectedDeliveryDate DateTime?
+  notes                String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([poNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+
+
+
 

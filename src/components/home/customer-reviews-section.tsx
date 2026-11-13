@@ -10,15 +10,16 @@ export function CustomerReviewsSection() {
   const [direction, setDirection] = useState<"normal" | "reverse">("normal")
   const [isPaused, setIsPaused] = useState(false)
 
-  // Duplicate items for continuous seamless loop like the brand strip
+  // 4 sets ensure an exact -50% translateX loop alignment with zero glitch/jump
   const marqueeItems = [
+    ...sampleTestimonials,
     ...sampleTestimonials,
     ...sampleTestimonials,
     ...sampleTestimonials,
   ]
 
   return (
-    <section className="mx-auto w-full max-w-[1440px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8 overflow-hidden group select-none">
+    <section className="mx-auto w-full max-w-[1440px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8 overflow-hidden select-none">
       <Reveal>
         {/* Header: Title on left, Direction Controls on right */}
         <div className="flex items-center justify-between gap-4 mb-8 sm:mb-10">
@@ -65,7 +66,7 @@ export function CustomerReviewsSection() {
         </div>
 
         {/* Carousel Container with soft edge fades */}
-        <div className="relative">
+        <div className="relative overflow-hidden group">
           {/* Left soft edge fade */}
           <div
             aria-hidden="true"
@@ -78,7 +79,7 @@ export function CustomerReviewsSection() {
             className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-16 lg:w-28 bg-gradient-to-l from-background via-background/80 to-transparent z-10"
           />
 
-          {/* Continuous Automatic Marquee Track (pauses on hover and focus) */}
+          {/* Continuous Automatic Marquee Track (pauses on hover over cards) */}
           <div className="flex overflow-hidden py-2 motion-reduce:justify-center motion-reduce:flex-wrap">
             <div
               className="flex shrink-0 gap-5 sm:gap-6 animate-marquee-slow group-hover:[animation-play-state:paused] focus-within:[animation-play-state:paused] motion-reduce:animate-none"

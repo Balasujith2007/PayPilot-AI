@@ -66,7 +66,16 @@ export const useAuthStore = create<AuthState>()(
           (u) => u.email === email && u.password === password
         )
         if (found) {
-          const { password: _, ...user } = found
+          const user: User = {
+            id: found.id,
+            email: found.email,
+            firstName: found.firstName,
+            lastName: found.lastName,
+            role: found.role,
+            addresses: found.addresses,
+            createdAt: found.createdAt,
+            updatedAt: found.updatedAt,
+          }
           set({ user, isAuthenticated: true })
           return true
         }

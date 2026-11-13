@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,30 +10,51 @@ import { PageHeader } from "@/components/ui/page-header"
 import { useAuthGuard } from "@/hooks/use-auth-guard"
 import { useAuthStore } from "@/store/auth"
 import { toast } from "sonner"
+import type { User } from "@/types"
+
+function ProfileForm({
+  user,
+  onSave,
+}: {
+  user: User
+  onSave: (data: Partial<Pick<User, "firstName" | "lastName" | "email">>) => void
+}) {
+  const [firstName, setFirstName] = useState(user.firstName)
+  const [lastName, setLastName] = useState(user.lastName)
+  const [email, setEmail] = useState(user.email)
+
+  function handleSave(e: React.FormEvent) {
+    e.preventDefault()
+    onSave({ firstName, lastName, email })
+    toast.success("Profile updated")
+  }
+
+  return (
+    <form onSubmit={handleSave} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="firstName">First name</Label>
+          <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="lastName">Last name</Label>
+          <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      </div>
+      <Button type="submit">Save Changes</Button>
+    </form>
+  )
+}
 
 export default function SettingsPage() {
   const { user, isReady } = useAuthGuard()
   const updateProfile = useAuthStore((s) => s.updateProfile)
 
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
-  const [email, setEmail] = useState("")
-
-  useEffect(() => {
-    if (user) {
-      setFirstName(user.firstName)
-      setLastName(user.lastName)
-      setEmail(user.email)
-    }
-  }, [user])
-
-  if (!isReady) return null
-
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault()
-    updateProfile({ firstName, lastName, email })
-    toast.success("Profile updated")
-  }
+  if (!isReady || !user) return null
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
@@ -44,23 +65,7 @@ export default function SettingsPage() {
           <CardTitle>Profile Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSave} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First name</Label>
-                <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last name</Label>
-                <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <Button type="submit">Save Changes</Button>
-          </form>
+          <ProfileForm user={user} onSave={updateProfile} />
         </CardContent>
       </Card>
 

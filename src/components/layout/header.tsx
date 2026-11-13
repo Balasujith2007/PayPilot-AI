@@ -10,6 +10,7 @@ import {
   LogOut,
   ChevronDown,
   Sparkles,
+  Shield,
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import {
@@ -380,6 +381,23 @@ export function Header({ categories = [] }: HeaderProps) {
                     </p>
                   </div>
                   <DropdownMenuSeparator className="my-1 bg-black/5" />
+                  {user?.role === "admin" && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => router.push("/admin")}
+                        className="cursor-pointer rounded-xl px-3 py-2 bg-black text-white hover:bg-black/90 font-medium flex items-center justify-between"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Shield className="h-3.5 w-3.5" />
+                          <span>Admin Portal</span>
+                        </span>
+                        <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-bold">
+                          ADMIN
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="my-1 bg-black/5" />
+                    </>
+                  )}
                   <DropdownMenuItem
                     onClick={() => router.push("/account")}
                     className="cursor-pointer rounded-xl px-3 py-2 hover:bg-[#F0EEED] font-medium"

@@ -1,10 +1,14 @@
-// Re-export the JSON-backed repositories as the default implementations.
-// To swap backends (database, CMS, API), implement the same interfaces
-// and change these exports.
+// Database-backed Prisma repositories with seamless JSON fallback.
+// This ensures products, images, categories, and inventory edited or uploaded
+// in the admin panel are live and immediately visible across the shopping store.
 
-export { jsonProductRepository as productRepository } from "./json-product-repository"
-export { jsonCategoryRepository as categoryRepository } from "./json-category-repository"
-export { jsonBrandRepository as brandRepository } from "./json-brand-repository"
+export { prismaProductRepository as productRepository } from "./prisma-product-repository"
+export { prismaCategoryRepository as categoryRepository } from "./prisma-category-repository"
+export { prismaBrandRepository as brandRepository } from "./prisma-brand-repository"
+export { jsonProductRepository } from "./json-product-repository"
+export { jsonCategoryRepository } from "./json-category-repository"
+export { jsonBrandRepository } from "./json-brand-repository"
 export { jsonPageRepository as pageRepository } from "./json-page-repository"
 export { jsonBlogRepository as blogRepository } from "./json-blog-repository"
-export { jsonOrderRepository as orderRepository, JsonOrderRepository } from "./json-order-repository"
+export { prismaOrderRepository as orderRepository, PrismaOrderRepository } from "./prisma-order-repository"
+export { jsonOrderRepository, JsonOrderRepository } from "./json-order-repository"

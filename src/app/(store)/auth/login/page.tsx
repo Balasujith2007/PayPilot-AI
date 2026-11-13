@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -22,6 +22,15 @@ function LoginForm() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
 
+  // If already logged in as admin, redirect directly to Image 1 (/admin)
+  useEffect(() => {
+    const currentUser = useAuthStore.getState().user
+    const isAuthed = useAuthStore.getState().isAuthenticated
+    if (isAuthed && currentUser?.role === "admin") {
+      router.replace("/admin")
+    }
+  }, [router])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const result = loginSchema.safeParse({ email, password })
@@ -33,7 +42,13 @@ function LoginForm() {
     const success = login(email, password)
     if (success) {
       toast.success("Welcome back!")
-      router.push(redirectUrl)
+      const currentUser = useAuthStore.getState().user
+      // When logging in as admin, redirect to Image 1 (/admin) only
+      if (currentUser?.role === "admin" || email.trim().toLowerCase() === "admin@example.com") {
+        router.push("/admin")
+      } else {
+        router.push(redirectUrl === "/admin" ? "/account" : redirectUrl)
+      }
     } else {
       toast.error("Invalid email or password")
     }
@@ -50,7 +65,13 @@ function LoginForm() {
     const success = login(creds.email, creds.pass)
     if (success) {
       toast.success(`Welcome back, ${creds.label}!`)
-      router.push(redirectUrl)
+      const currentUser = useAuthStore.getState().user
+      // When logging in as admin, redirect to Image 1 (/admin) only
+      if (currentUser?.role === "admin" || role === "admin" || creds.email === "admin@example.com") {
+        router.push("/admin")
+      } else {
+        router.push(redirectUrl === "/admin" ? "/account" : redirectUrl)
+      }
     } else {
       toast.error("Failed to login with demo credentials")
     }

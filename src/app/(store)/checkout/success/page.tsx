@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useState, useEffect } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { AlertTriangle, CheckCircle, Clock } from "lucide-react"
 import { useOrdersStore } from "@/store/orders"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { formatPrice, formatDate } from "@/lib/utils"
 import type { ApiResponse, Order, PaypalOrderLookup } from "@/types"
 
@@ -26,12 +27,7 @@ export default function CheckoutSuccessPage() {
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get("order_id")
-
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    const id = window.requestAnimationFrame(() => setMounted(true))
-    return () => window.cancelAnimationFrame(id)
-  }, [])
+  const mounted = useHydrated()
 
   if (!mounted) {
     return (
@@ -234,34 +230,118 @@ function PaypalConfirmation({ checkoutRef }: { checkoutRef: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Demo confirmation (no payment provider configured)
+// Order confirmation (Direct DB / UPI / Card / Net Banking / COD)
 // ---------------------------------------------------------------------------
 
 function DemoConfirmation({ orderId }: { orderId: string | null }) {
   const getOrderById = useOrdersStore((s) => s.getOrderById)
-  const order = orderId ? getOrderById(orderId) : undefined
+  const storeOrder = orderId ? getOrderById(orderId) : undefined
+  const [dbOrder, setDbOrder] = useState<Order | null>(null)
+  const [loading, setLoading] = useState(Boolean(!storeOrder && orderId))
+
+  useEffect(() => {
+    if (!storeOrder && orderId) {
+      let ignore = false
+      fetch(`/api/admin/orders/${orderId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (ignore) return
+          if (data.success && data.order) {
+            setDbOrder({
+              id: data.order.id,
+              orderNumber: data.order.orderNumber,
+              userId: data.order.userId,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              items: (data.order.items || []).map((it: any) => ({
+                id: it.id,
+                productId: it.productId,
+                variantId: it.variantId,
+                name: it.name,
+                variantName: it.variantName,
+                sku: it.sku,
+                image: it.image,
+                price: it.price,
+                quantity: it.quantity,
+                total: it.total,
+              })),
+              status: data.order.status.toLowerCase(),
+              paymentStatus: data.order.paymentStatus.toLowerCase(),
+              paymentMethod: (data.order.paymentMethod === "CARD"
+                ? "card"
+                : data.order.paymentMethod === "BANK_TRANSFER"
+                ? "bank_transfer"
+                : data.order.paymentMethod === "OTHER"
+                ? "other"
+                : "wallet") as Order["paymentMethod"],
+              subtotal: data.order.subtotal,
+              tax: data.order.tax,
+              shipping: data.order.shipping,
+              total: data.order.total,
+              currency: data.order.currency,
+              shippingAddress: data.order.shippingAddress,
+              customerEmail: data.order.customerEmail,
+              customerName: data.order.customerName,
+              createdAt: data.order.createdAt,
+              updatedAt: data.order.updatedAt,
+            })
+          }
+        })
+        .catch(console.error)
+        .finally(() => {
+          if (!ignore) setLoading(false)
+        })
+      return () => {
+        ignore = true
+      }
+    }
+  }, [storeOrder, orderId])
+
+  const order = storeOrder || dbOrder
+
+  const isPaid = order?.paymentStatus === "captured"
+  const isCod = order?.paymentStatus === "pending" || order?.paymentMethod === "other"
 
   return (
     <Shell
-      icon={<CheckCircle className="h-16 w-16 text-success" />}
+      icon={<CheckCircle className="h-16 w-16 text-emerald-600" />}
       title="Thank you for your order!"
-      description="Your order has been recorded. No payment was processed."
+      description={
+        isCod
+          ? "Your Cash on Delivery order is confirmed and queued for fulfillment."
+          : isPaid
+          ? "Payment confirmed! Your order has been placed and is being packed."
+          : "Your order has been recorded successfully."
+      }
     >
+      {loading && !order && (
+        <p className="mt-4 text-sm text-muted-foreground">Loading order details...</p>
+      )}
+
       {order && (
-        <Card className="mt-8 w-full text-left">
+        <Card className="mt-8 w-full text-left rounded-[20px] shadow-sm border-black/10">
           <CardContent className="pt-6 space-y-4">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Order number</span>
-              <span className="font-medium">{order.orderNumber}</span>
+              <span className="font-semibold text-black">{order.orderNumber}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Date</span>
               <span>{formatDate(order.createdAt)}</span>
             </div>
             <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Payment method</span>
+              <span className="font-medium uppercase">{order.paymentMethod || "UPI"}</span>
+            </div>
+            <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Payment status</span>
-              <Badge variant="secondary">
-                {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+              <Badge
+                className={
+                  isPaid
+                    ? "bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold"
+                    : "bg-amber-100 text-amber-800 border-amber-300 font-semibold"
+                }
+              >
+                {order.paymentStatus.toUpperCase()}
               </Badge>
             </div>
             <Separator />
@@ -270,7 +350,7 @@ function DemoConfirmation({ orderId }: { orderId: string | null }) {
                 <span className="text-muted-foreground">
                   {item.name} &times; {item.quantity}
                 </span>
-                <span>{formatPrice(item.total)}</span>
+                <span className="font-medium text-black tabular-nums">{formatPrice(item.total)}</span>
               </div>
             ))}
             <Separator />
@@ -279,16 +359,16 @@ function DemoConfirmation({ orderId }: { orderId: string | null }) {
               <span>{formatPrice(order.subtotal)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Shipping</span>
+              <span className="text-muted-foreground">Shipping (India Delivery)</span>
               <span>{order.shipping === 0 ? "Free" : formatPrice(order.shipping)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tax</span>
+              <span className="text-muted-foreground">GST Tax</span>
               <span>{formatPrice(order.tax)}</span>
             </div>
             <Separator />
-            <div className="flex justify-between font-medium">
-              <span>Total</span>
+            <div className="flex justify-between font-bold text-base text-black">
+              <span>Total Paid</span>
               <span>{formatPrice(order.total)}</span>
             </div>
           </CardContent>
@@ -296,10 +376,10 @@ function DemoConfirmation({ orderId }: { orderId: string | null }) {
       )}
 
       <div className="mt-8 flex gap-4">
-        <Button asChild>
-          <Link href="/account/orders">View Orders</Link>
+        <Button asChild className="rounded-full">
+          <Link href="/account/orders">View My Orders</Link>
         </Button>
-        <Button variant="outline" asChild>
+        <Button variant="outline" asChild className="rounded-full">
           <Link href="/shop">Continue Shopping</Link>
         </Button>
       </div>

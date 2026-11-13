@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient, UserRole, AddressType, ProductStatus, OrderStatus, PaymentStatus, PaymentMethod } from "@prisma/client";
+import { PrismaClient, Prisma, UserRole, AddressType, ProductStatus, OrderStatus, PaymentStatus, PaymentMethod } from "@prisma/client";
 
 // Ensure .env.local is loaded
 const __filename = fileURLToPath(import.meta.url);
@@ -162,7 +162,7 @@ async function main() {
         name: c.name,
         slug: c.slug,
         description: c.description,
-        image: c.image ?? null,
+        image: c.image ? (c.image as Prisma.InputJsonValue) : Prisma.JsonNull,
         order: c.order ?? 0,
         parentId: null,
       },
@@ -171,7 +171,7 @@ async function main() {
         name: c.name,
         slug: c.slug,
         description: c.description,
-        image: c.image ?? null,
+        image: c.image ? (c.image as Prisma.InputJsonValue) : Prisma.JsonNull,
         order: c.order ?? 0,
         parentId: null,
       },
@@ -185,7 +185,7 @@ async function main() {
         name: c.name,
         slug: c.slug,
         description: c.description,
-        image: c.image ?? null,
+        image: c.image ? (c.image as Prisma.InputJsonValue) : Prisma.JsonNull,
         order: c.order ?? 0,
         parentId: c.parentId,
       },
@@ -194,7 +194,7 @@ async function main() {
         name: c.name,
         slug: c.slug,
         description: c.description,
-        image: c.image ?? null,
+        image: c.image ? (c.image as Prisma.InputJsonValue) : Prisma.JsonNull,
         order: c.order ?? 0,
         parentId: c.parentId,
       },

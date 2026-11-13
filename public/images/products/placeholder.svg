@@ -1,3 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
-  <rect width="800" height="800" fill="#e5e5e5"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800" fill="none">
+  <rect width="800" height="800" rx="32" fill="#F0EEED"/>
+  <rect x="40" y="40" width="720" height="720" rx="24" fill="#E8E5E3" stroke="#D5D0CD" stroke-width="2"/>
+  <g transform="translate(250, 240)">
+    <!-- Modern Product Package Illustration -->
+    <rect x="30" y="70" width="240" height="240" rx="28" fill="#FFFFFF" stroke="#000000" stroke-width="8"/>
+    <path d="M70 70 L150 130 L230 70" stroke="#000000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M150 130 V310" stroke="#000000" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="150" cy="180" r="16" fill="#000000"/>
+    <path d="M90 230 H120" stroke="#999999" stroke-width="8" stroke-linecap="round"/>
+    <path d="M90 260 H130" stroke="#999999" stroke-width="8" stroke-linecap="round"/>
+    <path d="M180 230 H210" stroke="#999999" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <text x="400" y="600" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="28" fill="#1A1A1A" letter-spacing="1">PAYPILOT PRODUCT</text>
+  <text x="400" y="635" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="500" font-size="18" fill="#737373">Original Store Merchandise</text>
 </svg>

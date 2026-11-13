@@ -191,9 +191,14 @@ export function PaypalCheckoutButton({ config, customer }: PaypalCheckoutButtonP
   // The SDK callbacks are created once; these refs keep them reading the
   // latest cart and customer without re-rendering the buttons.
   const itemsRef = useRef(items)
-  itemsRef.current = items
   const customerRef = useRef(customer)
-  customerRef.current = customer
+
+  useEffect(() => {
+    itemsRef.current = items
+  }, [items])
+  useEffect(() => {
+    customerRef.current = customer
+  }, [customer])
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -203,8 +208,6 @@ export function PaypalCheckoutButton({ config, customer }: PaypalCheckoutButtonP
     if (!config.enabled || !clientId) return
 
     let cancelled = false
-    setLoading(true)
-    setError(null)
 
     loadPaypalSdk(clientId, config.currency)
       .then((sdk) => {

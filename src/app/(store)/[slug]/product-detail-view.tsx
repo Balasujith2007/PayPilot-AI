@@ -7,21 +7,9 @@ import { toast } from "sonner"
 import { useCartStore } from "@/store/cart"
 import { useWishlistStore } from "@/store/wishlist"
 import { useRecentlyViewedStore } from "@/store/recently-viewed"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { RecentlyViewed } from "@/components/products/recently-viewed"
-import { StarRating } from "@/components/products/star-rating"
-import { TrustSignals } from "@/components/products/trust-signals"
 import { CompareToggleButton } from "@/components/compare/compare-toggle-button"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { ProductGallery } from "@/components/products/product-gallery"
 import { VariantSelector } from "@/components/products/variant-selector"
 import { QuantitySelector } from "@/components/products/quantity-selector"
@@ -74,11 +62,7 @@ export function ProductDetailView({
   const removeFromWishlist = useWishlistStore((s) => s.removeItem)
   const addRecentlyViewed = useRecentlyViewedStore((s) => s.addItem)
 
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    const id = window.requestAnimationFrame(() => setMounted(true))
-    return () => window.cancelAnimationFrame(id)
-  }, [])
+  const mounted = useHydrated()
 
   const isWishlisted = mounted && wishlistItems.some((i) => i.productId === product.id)
 
@@ -353,8 +337,32 @@ export function ProductDetailView({
                 }
                 className="flex-1 rounded-full bg-black text-white hover:bg-black/85 font-medium py-3 sm:py-3.5 px-6 sm:px-8 flex items-center justify-center gap-2.5 transition-all duration-200 active:scale-95 disabled:bg-black/40 disabled:cursor-not-allowed shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 min-h-[44px] sm:min-h-[50px]"
               >
-                <Heart className={`h-4 w-4 ${isWishlisted ? "fill-wishlist text-wishlist" : ""}`} />
+                {isAdded ? (
+                  <span className="inline-flex items-center gap-2 font-medium">
+                    <Check className="h-5 w-5 stroke-[2.5]" />
+                    <span>Added to Cart!</span>
+                  </span>
+                ) : inStock ? (
+                  <span>Add to Cart</span>
+                ) : (
+                  <span>Out of Stock</span>
+                )}
               </button>
+
+              <button
+                type="button"
+                onClick={handleToggleWishlist}
+                aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                className={cn(
+                  "h-11 w-11 sm:h-[50px] sm:w-[50px] rounded-full border border-black/10 flex items-center justify-center transition-all duration-200 active:scale-90 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black",
+                  isWishlisted
+                    ? "bg-red-50 text-red-600 border-red-200"
+                    : "bg-white text-black/70 hover:bg-[#F0EEED]"
+                )}
+              >
+                <Heart className={cn("h-5 w-5", isWishlisted && "fill-current")} />
+              </button>
+
               <CompareToggleButton product={product} variant="button" />
             </div>
 

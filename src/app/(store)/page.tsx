@@ -1,18 +1,15 @@
 import type { Metadata } from "next"
-import Link from "next/link"
-import { ArrowRight } from "lucide-react"
 import { siteConfig } from "@/lib/config"
 import { productRepository, categoryRepository, brandRepository } from "@/lib/repositories"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { HeroSection } from "@/components/hero/hero-section"
 import { BrandStrip } from "@/components/home/brand-strip"
 import { ProductShelfSection } from "@/components/home/product-shelf-section"
 import { CategoriesSection } from "@/components/home/categories-section"
 import { CustomerReviewsSection } from "@/components/home/customer-reviews-section"
 import { WhyUsSection } from "@/components/home/why-us-section"
+import { FlashSaleBanner } from "@/components/home/flash-sale-banner"
 import { ScrollProgressBar } from "@/components/layout/scroll-progress-bar"
-import { formatPrice } from "@/lib/utils"
+import { prisma } from "@/lib/db/prisma"
 
 export const metadata: Metadata = {
   title: "PayPilot AI — Shop Smarter with Your Personal AI Assistant",
@@ -27,6 +24,9 @@ export const metadata: Metadata = {
     url: siteConfig.url,
   },
 }
+
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 export default async function HomePage() {
   const allCategories = await categoryRepository.list()
@@ -75,34 +75,32 @@ export default async function HomePage() {
     .sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
     .slice(0, 4)
 
+  // Query live Flash Sale from Neon PostgreSQL
+  let activeFlashSale = null
+  try {
+    const now = new Date()
+    activeFlashSale = await prisma.flashSale.findFirst({
+      where: {
+        isActive: true,
+        startsAt: { lte: now },
+        endsAt: { gte: now },
+      },
+      orderBy: { startsAt: "desc" },
+    })
+  } catch (e) {
+    console.warn("Could not query active flash sale:", e)
+  }
+
   return (
     <div className="flex flex-col">
       {/* Scroll Progress Bar */}
       <ScrollProgressBar />
 
       {/* Hero */}
-      <section className="relative flex h-[650px] items-center justify-center bg-neutral-50">
-        <div className="mx-auto max-w-3xl px-4 text-center">
-          <Badge variant="secondary" className="mb-4">
-            Free shipping on orders over {formatPrice(siteConfig.freeShippingThreshold)}
-          </Badge>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            Next.js Ecommerce Starter
-          </h1>
-          <p className="mt-6 text-lg text-muted-foreground">
-            A free, open-source ecommerce template built with Next.js, Tailwind CSS, and shadcn/ui.
-            Production-ready, fully responsive, and designed to connect to any checkout system.
-          </p>
-          <div className="mt-8 flex justify-center">
-            <Button size="lg" asChild>
-              <Link href="/shop">
-                Shop Now
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <HeroSection stats={stats} />
+
+      {/* Live Flash Sale Banner if active */}
+      <FlashSaleBanner flashSale={activeFlashSale} />
 
       {/* 1. Brand Strip */}
       <BrandStrip brands={brandNames} />
