@@ -1,14 +1,17 @@
 // Neon PostgreSQL connectivity test
 import { config } from "dotenv"
 import { PrismaClient } from "@prisma/client"
-import { PrismaNeon } from "@prisma/adapter-neon"
+import { PrismaPg } from "@prisma/adapter-pg"
+import pg from "pg"
 
 // Load environment variables
 config({ path: ".env.local" })
 
-const adapter = new PrismaNeon({
+const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
 })
+const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
 async function testConnection() {
@@ -23,6 +26,7 @@ async function testConnection() {
     return false
   } finally {
     await prisma.$disconnect()
+    await pool.end()
   }
 }
 
