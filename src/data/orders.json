@@ -1,5 +1,73 @@
 [
   {
+    "id": "chk_c642c616-eaea-4447-b4bf-c2056b38c367",
+    "orderNumber": "PP-MWDZBBQ9-38C367",
+    "items": [
+      {
+        "id": "var-14-1",
+        "productId": "prod-14",
+        "variantId": "var-14-1",
+        "name": "Wireless Charging Pad",
+        "variantName": "Black",
+        "sku": "WC-BLK-001",
+        "image": {
+          "url": "/images/products/placeholder.svg",
+          "alt": "Wireless charging pad",
+          "width": 800,
+          "height": 800
+        },
+        "price": 2499,
+        "quantity": 2,
+        "total": 4998
+      },
+      {
+        "id": "var-1-1",
+        "productId": "prod-1",
+        "variantId": "var-1-1",
+        "name": "Wireless Over-Ear Headphones",
+        "variantName": "Black",
+        "sku": "WH-BLK-001",
+        "image": {
+          "url": "/images/products/placeholder.svg",
+          "alt": "Wireless headphones front view",
+          "width": 800,
+          "height": 800
+        },
+        "price": 7999,
+        "quantity": 1,
+        "total": 7999
+      }
+    ],
+    "status": "processing",
+    "paymentStatus": "captured",
+    "subtotal": 12997,
+    "tax": 1040,
+    "shipping": 0,
+    "total": 14037,
+    "currency": "USD",
+    "shippingAddress": {
+      "id": "paypal-shipping",
+      "type": "shipping",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "line1": "123 Main Street",
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94105",
+      "country": "US",
+      "isDefault": false
+    },
+    "customerEmail": "demo@example.com",
+    "customerName": "Jane Smith",
+    "userId": "user-2",
+    "createdAt": "2026-11-12T20:07:00.129Z",
+    "updatedAt": "2026-11-12T20:07:00.129Z",
+    "paymentMethod": "paypal",
+    "paymentReference": "1VV84681UA2684459",
+    "paypalOrderId": "7VS61540LK680305P",
+    "completedAt": "2026-11-12T20:07:00.129Z"
+  },
+  {
     "id": "chk_3f5a480b-c4db-467e-b2ae-cfa4fd4759ad",
     "orderNumber": "PP-MWD0E21Y-4759AD",
     "items": [

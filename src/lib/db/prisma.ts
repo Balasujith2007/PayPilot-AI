@@ -9,6 +9,17 @@ import pg from "pg"
  * the schema automatically.  We use a pg.Pool so the connection is reused
  * across hot-reloads in development.
  *
+ * **Connection strategy for Neon PostgreSQL:**
+ *
+ *   DATABASE_URL  → pooled endpoint  (`-pooler` hostname): used for runtime
+ *                   queries in the long-running Next.js server.  Neon's
+ *                   connection pooler handles cold starts, connection limits,
+ *                   and idle-timeout recycling transparently.
+ *
+ *   DIRECT_URL   → direct endpoint  (no `-pooler`): used only by
+ *                   `prisma migrate` / `prisma db push` which need a
+ *                   persistent session for DDL locks.  NOT used here.
+ *
  * Server-side only — never import this in Client Components.
  */
 
@@ -20,9 +31,17 @@ const globalForPrisma = globalThis as unknown as {
 const pool =
   globalForPrisma.prismaPool ??
   new pg.Pool({
-    connectionString: process.env.DATABASE_URL,
+    // Use the pooled URL for runtime; fall back to DIRECT_URL only if
+    // DATABASE_URL is completely absent (rare misconfiguration).
+    connectionString: process.env.DATABASE_URL ?? process.env.DIRECT_URL,
     ssl: { rejectUnauthorized: false },
     max: 10,
+    // Neon databases sleep after inactivity. Allow enough time for a cold
+    // start (typically 1-3 s) plus network latency.
+    connectionTimeoutMillis: 15_000,
+    // Release idle connections before Neon's proxy closes them (~5 min).
+    // This prevents the pool from handing out a dead socket.
+    idleTimeoutMillis: 120_000,
   })
 
 const adapter = new PrismaPg(pool)

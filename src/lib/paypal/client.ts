@@ -1,5 +1,6 @@
 import { z } from "zod"
 
+import { siteConfig } from "@/lib/config"
 import type { PaypalConfig } from "./config"
 
 /**
@@ -45,10 +46,17 @@ const purchaseUnitSchema = z.object({
     .optional(),
 })
 
+const linkSchema = z.object({
+  href: z.string(),
+  rel: z.string(),
+  method: z.string().optional(),
+})
+
 const orderSchema = z.object({
   id: z.string(),
   status: z.string(),
   purchase_units: z.array(purchaseUnitSchema).optional(),
+  links: z.array(linkSchema).optional(),
 })
 
 const tokenSchema = z.object({
@@ -265,7 +273,8 @@ export function createPaypalClient(
     getAccessToken,
 
     async createOrder(purchaseUnit) {
-      return authorized("/v2/checkout/orders", {
+      const appUrl = (siteConfig.url || "http://localhost:3000").replace(/\/+$/, "")
+      const order = await authorized("/v2/checkout/orders", {
         method: "POST",
         body: JSON.stringify({
           intent: "CAPTURE",
@@ -301,8 +310,29 @@ export function createPaypalClient(
               })),
             },
           ],
+          payment_source: {
+            paypal: {
+              experience_context: {
+                brand_name: "PayPilot Store",
+                locale: "en-US",
+                landing_page: "LOGIN",
+                shipping_preference: "GET_FROM_FILE",
+                user_action: "PAY_NOW",
+                return_url: `${appUrl}/checkout/success`,
+                cancel_url: `${appUrl}/checkout`,
+              },
+            },
+          },
         }),
       })
+
+      // When payment_source is specified, PayPal Orders v2 sets status to
+      // PAYER_ACTION_REQUIRED to signify the order is successfully created and
+      // awaiting buyer approval. Normalise this to CREATED for caller consistency.
+      if (order.status === "PAYER_ACTION_REQUIRED") {
+        return { ...order, status: "CREATED" }
+      }
+      return order
     },
 
     async captureOrder(orderId) {
